@@ -1,73 +1,205 @@
-# Welcome to your Lovable project
 
-## Project info
+# Gorlea Snaps - AI Story Generator
 
-**URL**: https://lovable.dev/projects/69c32afc-b9d0-4c02-bbaa-c3f0b1781d58
+A mobile-first web application that generates AI stories based on uploaded photos. Users can upload an image, select a genre, and receive a custom story based on the content of their photo.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- User authentication (login/signup, guest access)
+- Image upload and preview
+- Genre selection (Rom-Com, Horror, Sci-Fi, Film Noir)
+- AI story generation
+- Save stories to favorites
+- Share stories
+- Mobile-first responsive design
 
-**Use Lovable**
+## Technologies Used
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/69c32afc-b9d0-4c02-bbaa-c3f0b1781d58) and start prompting.
+### Frontend
+- React.js with TypeScript
+- Tailwind CSS for styling
+- Shadcn UI components
+- React Router for navigation
+- React Query for data handling
+- Lucide React for icons
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend Requirements (Future Implementation)
+- Authentication service (e.g., Firebase Auth, Auth0, or custom)
+- Image upload and storage (e.g., Firebase Storage, AWS S3)
+- Database for user data and stories (e.g., Firestore, MongoDB)
+- AI integration for story generation
 
-**Use your preferred IDE**
+## Backend Architecture
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+To implement the backend for this application, the following components are needed:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. **Authentication Service**
+   - User registration, login, and account management
+   - JWT or session-based auth
+   - Password reset functionality
+   - Social login options (optional)
 
-Follow these steps:
+2. **Image Processing Service**
+   - Image upload endpoint
+   - Compression/resizing
+   - Storage with secure access
+   - Image metadata extraction for AI context
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. **Story Generation Service**
+   - OpenAI GPT or similar integration
+   - Prompt engineering based on image content and selected genre
+   - Story formatting and structure
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4. **Database Schema**
+   - Users collection
+     - id
+     - email
+     - name
+     - profilePicture
+     - createdAt
+   - Stories collection
+     - id
+     - userId (owner)
+     - title
+     - content
+     - genre
+     - imageUrl
+     - createdAt
+   - Favorites collection (or field in Users)
+     - userId
+     - storyId
+     - createdAt
 
-# Step 3: Install the necessary dependencies.
-npm i
+5. **API Endpoints**
+   - `/api/auth` - Authentication endpoints
+   - `/api/upload` - Image upload handling
+   - `/api/stories` - Story CRUD operations
+   - `/api/favorites` - Favorite management
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## API Integration Guide
+
+### Authentication API
+
+```javascript
+// Example authentication integration
+async function login(email, password) {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  
+  return response.json();
+}
+
+async function register(email, password, name) {
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name })
+  });
+  
+  return response.json();
+}
 ```
 
-**Edit a file directly in GitHub**
+### Story Generation API
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```javascript
+// Example story generation integration
+async function generateStory(imageFile, genre, userId) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('genre', genre);
+  formData.append('userId', userId);
+  
+  const response = await fetch('/api/stories/generate', {
+    method: 'POST',
+    body: formData
+  });
+  
+  return response.json();
+}
 
-**Use GitHub Codespaces**
+async function getStories(userId) {
+  const response = await fetch(`/api/stories/user/${userId}`);
+  return response.json();
+}
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Image Upload API
 
-## What technologies are used for this project?
+```javascript
+// Example image upload integration
+async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData
+  });
+  
+  return response.json();
+}
+```
 
-This project is built with:
+## AI Story Generation
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+For the AI story generation component, you'll need to:
 
-## How can I deploy this project?
+1. Extract relevant information from the uploaded image using:
+   - Image classification (Google Cloud Vision, AWS Rekognition)
+   - Object detection
+   - Scene description
 
-Simply open [Lovable](https://lovable.dev/projects/69c32afc-b9d0-4c02-bbaa-c3f0b1781d58) and click on Share -> Publish.
+2. Create a prompt for the AI based on:
+   - Image content description
+   - Selected genre
+   - Desired story length and structure
 
-## Can I connect a custom domain to my Lovable project?
+3. Generate the story using:
+   - OpenAI's GPT API or similar LLM
+   - Custom prompt engineering for each genre
+   - Post-processing to format the response
 
-Yes, you can!
+Example prompt template:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+You are an expert storyteller. Create a {genre} story based on the following image description:
+{image_description}
+The story should have a compelling title, be approximately 500-800 words, and include well-formed paragraphs.
+For {genre}, focus on {genre_specific_instructions}.
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Security Considerations
+
+1. Implement proper authentication with JWT or sessions
+2. Use secure storage for images with access controls
+3. Rate limit the AI story generation API
+4. Validate and sanitize all user inputs
+5. Use HTTPS for all API communications
+6. Implement proper CORS policies
+7. Securely store API keys for third-party services
+
+## Scaling Considerations
+
+1. Cache popular or recent stories
+2. Implement a CDN for image delivery
+3. Consider serverless architecture for the AI generation component
+4. Use a job queue for asynchronous story generation
+5. Implement database indexing for performance
+6. Consider read replicas for database scaling
+
+## Future Enhancements
+
+1. Additional story genres
+2. User feedback and rating system
+3. AI fine-tuning based on user preferences
+4. Multi-image story generation
+5. Audio narration of stories
+6. Custom character development
+7. Social sharing integrations
+8. Story collections and organization
+
+This README provides a comprehensive guide for implementing the backend services required to support the Gorlea Snaps frontend application.
