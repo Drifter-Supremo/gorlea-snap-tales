@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,12 +13,19 @@ import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage
 import { storage } from "@/lib/firebase";
 
 const SettingsPage: React.FC = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate, user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,21 +66,21 @@ const SettingsPage: React.FC = () => {
     try {
       const file = fileInputRef.current.files[0];
       const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-      
+
       // Upload the file
       await uploadBytes(storageRef, file);
-      
+
       // Get the download URL
       const downloadURL = await getDownloadURL(storageRef);
-      
+
       // Update user profile
       await updateUserProfile({ photoURL: downloadURL });
-      
+
       toast({
         title: "Profile picture updated",
         description: "Your profile picture has been updated successfully",
       });
-      
+
       // Clear the preview and file input
       setPreviewUrl(null);
       if (fileInputRef.current) {
@@ -93,7 +100,7 @@ const SettingsPage: React.FC = () => {
 
   const handleRemovePhoto = async () => {
     if (!user || !user.photoURL) return;
-    
+
     setIsUploading(true);
     try {
       // If the photo is from our storage (not from dicebear)
@@ -102,11 +109,11 @@ const SettingsPage: React.FC = () => {
         const storageRef = ref(storage, `profile-pictures/${user.uid}`);
         await deleteObject(storageRef);
       }
-      
+
       // Set the profile picture to the default avatar
       const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email || 'default'}`;
       await updateUserProfile({ photoURL: defaultAvatar });
-      
+
       toast({
         title: "Profile picture removed",
         description: "Your profile picture has been reset to the default avatar",
@@ -130,7 +137,7 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gorlea-background text-gorlea-text flex flex-col">
       <Header />
-      
+
       <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10">
         <div className="animate-fade-in">
           <div className="mb-6">
@@ -161,16 +168,16 @@ const SettingsPage: React.FC = () => {
               <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-24 w-24 border-2 border-gorlea-accent">
-                    <AvatarImage 
-                      src={previewUrl || user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`} 
-                      alt={user?.displayName || "User"} 
+                    <AvatarImage
+                      src={previewUrl || user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+                      alt={user?.displayName || "User"}
                     />
                     <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex gap-2 mt-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
                       onClick={triggerFileInput}
@@ -179,10 +186,10 @@ const SettingsPage: React.FC = () => {
                       <Camera className="h-4 w-4 mr-1" />
                       Change
                     </Button>
-                    
+
                     {user?.photoURL && !user.photoURL.includes('dicebear.com') && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
                         onClick={handleRemovePhoto}
@@ -193,7 +200,7 @@ const SettingsPage: React.FC = () => {
                       </Button>
                     )}
                   </div>
-                  
+
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -202,23 +209,23 @@ const SettingsPage: React.FC = () => {
                     className="hidden"
                   />
                 </div>
-                
+
                 <div className="flex-1 space-y-4 w-full">
                   <div>
                     <Label>Name</Label>
                     <p className="text-gorlea-text font-medium">{user?.displayName || "Not set"}</p>
                   </div>
-                  
+
                   <div>
                     <Label>Email</Label>
                     <p className="text-gorlea-text font-medium">{user?.email || "Not set"}</p>
                   </div>
                 </div>
               </div>
-              
+
               {previewUrl && (
                 <div className="flex justify-end">
-                  <Button 
+                  <Button
                     onClick={handleUpload}
                     className="bg-gorlea-accent hover:bg-gorlea-accent/90"
                     disabled={isUploading}

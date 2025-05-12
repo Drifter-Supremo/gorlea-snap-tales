@@ -6,12 +6,12 @@ import { getStorage } from 'firebase/storage';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCF-w2QyUD0xCdE0aHEjhDyQJaMRhfa57Y",
-  authDomain: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "gorlea-snaps.firebaseapp.com",
-  projectId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "gorlea-snaps",
-  storageBucket: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "gorlea-snaps.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "237260784307",
-  appId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:237260784307:web:b162baa77794b271c926c6"
+  apiKey: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCF-w2QyUD0xCdE0aHEjhDyQJaMRhfa57Y",
+  authDomain: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "gorlea-snaps.firebaseapp.com",
+  projectId: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "gorlea-snaps",
+  storageBucket: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "gorlea-snaps.appspot.com",
+  messagingSenderId: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "237260784307",
+  appId: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:237260784307:web:b162baa77794b271c926c6"
 };
 
 // Log the config for debugging (remove in production)
