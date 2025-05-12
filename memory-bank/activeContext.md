@@ -33,6 +33,10 @@
   - Added the logo to the login page (centered above the text)
   - Added the logo to the header (in the top-left corner)
   - Set the logo as the application favicon and updated Open Graph images
+- Updated branding from "AI Stories" to just "Stories":
+  - Changed the badge text in the Logo component
+  - Updated all references in the application text
+  - Updated page titles and meta descriptions
 
 ## Next Steps
 

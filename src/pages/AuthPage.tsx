@@ -188,7 +188,7 @@ const AuthPage: React.FC = () => {
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="flex flex-col items-center justify-center text-center">
           <Logo size="lg" />
-          <p className="mt-4 text-lg">Create AI-generated stories from your photos</p>
+          <p className="mt-4 text-lg">Create stories from your photos</p>
         </div>
 
         {showResetForm ? (
@@ -342,7 +342,7 @@ const AuthPage: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="text-center">Create Account</CardTitle>
                     <CardDescription className="text-center">
-                      Join Gorlea Snaps to create your own AI stories
+                      Join Gorlea Snaps to create your own stories
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">

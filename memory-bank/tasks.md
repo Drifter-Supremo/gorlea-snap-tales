@@ -84,6 +84,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Add logo to the login page
 - [x] Add logo to the header
 - [x] Set logo as favicon
+- [x] Update branding from "AI Stories" to "Stories"
 - [ ] Ensure consistent brand colors across components
 
 ## Phase 3: Core Functionality

@@ -82,7 +82,7 @@ const MainPage: React.FC = () => {
         <div className="animate-fade-in">
           <h1 className="text-3xl md:text-4xl font-serif font-bold mb-2 mt-6">Create your story</h1>
           <p className="mb-8 text-gorlea-text/80">
-            Upload a photo and choose a genre to generate an AI story
+            Upload a photo and choose a genre to generate a story
           </p>
 
           <div className="mb-8">
