@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const SettingsPage: React.FC = () => {
   const { user, updateUserProfile } = useAuth();
@@ -52,43 +54,28 @@ const SettingsPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleUpload = async () => {
-    if (!user || !fileInputRef.current?.files?.[0]) return;
-
+  const handleUpload = () => {
+    if (!fileInputRef.current?.files?.[0]) return;
     setIsUploading(true);
-    try {
-      const file = fileInputRef.current.files[0];
-      const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-
-      // Upload the file
-      await uploadBytes(storageRef, file);
-
-      // Get the download URL
-      const downloadURL = await getDownloadURL(storageRef);
-
-      // Update user profile
-      await updateUserProfile({ photoURL: downloadURL });
-
-      toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been updated successfully",
-      });
-
-      // Clear the preview and file input
-      setPreviewUrl(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const file = fileInputRef.current.files[0];
+        const storageRef = ref(storage, `users/${currentUser.uid}/images/${Date.now()}_${file.name}`);
+        try {
+          await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(storageRef);
+          await updateUserProfile({ photoURL: downloadURL });
+          toast({ title: "Profile picture updated", description: "Your profile picture has been updated successfully" });
+          setPreviewUrl(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        } catch (error) {
+          console.error("Error uploading profile picture:", error);
+          toast({ title: "Upload failed", description: "There was a problem uploading your profile picture", variant: "destructive" });
+        } finally {
+          setIsUploading(false);
+        }
       }
-    } catch (error) {
-      console.error("Error uploading profile picture:", error);
-      toast({
-        title: "Upload failed",
-        description: "There was a problem uploading your profile picture",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    });
   };
 
   const handleRemovePhoto = async () => {

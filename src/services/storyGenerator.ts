@@ -10,10 +10,30 @@ export const generateStory = async (
   userId: string
 ): Promise<{ id: string; title: string }> => {
   try {
+    // Validate inputs
+    if (!imageFile || imageFile.size === 0) {
+      throw new Error("No image file provided");
+    }
+
+    if (!genre) {
+      throw new Error("No genre selected");
+    }
+
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    console.log("Starting story generation process...");
+    console.log(`Image file: ${imageFile.name}, size: ${imageFile.size}, type: ${imageFile.type}`);
+    console.log(`Genre: ${genre}, User ID: ${userId}`);
+
     // Upload image to Cloudinary
+    console.log("Uploading image to Cloudinary...");
     const imageUrl = await uploadToCloudinary(imageFile, userId);
+    console.log("Image uploaded successfully:", imageUrl);
 
     // Simulate API delay for story generation
+    console.log("Generating story...");
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Generate a random title based on genre
@@ -239,6 +259,17 @@ export const generateStory = async (
     };
   } catch (error) {
     console.error("Error generating story:", error);
-    throw new Error(`Failed to generate story: ${error.message}`);
+
+    // Provide more specific error messages based on the error
+    if (error.message && error.message.includes("Cloudinary")) {
+      console.error("Cloudinary error details:", error);
+      throw new Error(`Image upload failed: ${error.message}`);
+    } else if (error.message && error.message.includes("No image file")) {
+      throw new Error("Please upload an image to generate a story");
+    } else if (error.message && error.message.includes("No genre")) {
+      throw new Error("Please select a genre to generate a story");
+    } else {
+      throw new Error(`Failed to generate story: ${error.message}`);
+    }
   }
 };

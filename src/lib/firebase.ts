@@ -72,7 +72,7 @@ const fallbacks = {
   FIREBASE_API_KEY: "AIzaSyCF-w2QyUD0xCdE0aHEjhDyQJaMRhfa57Y",
   FIREBASE_AUTH_DOMAIN: "gorlea-snaps.firebaseapp.com",
   FIREBASE_PROJECT_ID: "gorlea-snaps",
-  FIREBASE_STORAGE_BUCKET: "gorlea-snaps.appspot.com",
+  FIREBASE_STORAGE_BUCKET: "gorlea-snaps.firebasestorage.app",
   FIREBASE_MESSAGING_SENDER_ID: "237260784307",
   FIREBASE_APP_ID: "1:237260784307:web:b162baa77794b271c926c6"
 };

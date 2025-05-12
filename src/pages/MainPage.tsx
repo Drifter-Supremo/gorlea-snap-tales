@@ -46,26 +46,54 @@ const MainPage: React.FC = () => {
     setIsGenerating(true);
 
     try {
+      console.log("Starting story generation with:", {
+        imageSize: selectedImage.size,
+        imageType: selectedImage.type,
+        genre: selectedGenre,
+        userId: user.uid
+      });
+
       const result = await generateStory(selectedImage, selectedGenre, user.uid);
+
+      console.log("Story generated successfully:", result);
+
       toast({
         title: "Story created!",
         description: `"${result.title}" has been generated.`,
       });
+
       navigate(`/story/${result.id}`);
     } catch (error) {
       console.error("Error generating story:", error);
 
       // Provide more specific error messages based on the error type
       let errorMessage = "Please try again later.";
+      let errorTitle = "Failed to generate story";
 
-      if (error.message && error.message.includes("upload")) {
-        errorMessage = "Failed to upload image. Please check your connection and try again.";
-      } else if (error.message && error.message.includes("Cloudinary")) {
-        errorMessage = "Image service error. Please try a different image or try again later.";
+      if (error.message) {
+        if (error.message.includes("cloud_name is disabled")) {
+          errorTitle = "Cloudinary Configuration Error";
+          errorMessage = "The Cloudinary account is not properly configured. Please check your Cloudinary settings.";
+        } else if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+          errorTitle = "Authentication Error";
+          errorMessage = "Failed to authenticate with the image service. Please try again later.";
+        } else if (error.message.includes("upload")) {
+          errorTitle = "Upload Failed";
+          errorMessage = "Failed to upload image. Please check your connection and try again.";
+        } else if (error.message.includes("Cloudinary")) {
+          errorTitle = "Image Service Error";
+          errorMessage = "There was a problem with the image service. Please try a different image or try again later.";
+        } else if (error.message.includes("No image file")) {
+          errorTitle = "Missing Image";
+          errorMessage = "Please upload an image to generate a story.";
+        } else if (error.message.includes("No genre")) {
+          errorTitle = "Missing Genre";
+          errorMessage = "Please select a genre to generate a story.";
+        }
       }
 
       toast({
-        title: "Failed to generate story",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
