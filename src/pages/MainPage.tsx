@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,16 +15,9 @@ const MainPage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated && !user) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate, user]);
 
   const handleImageUpload = (file: File, previewUrl: string) => {
     if (file.size > 0) {
@@ -53,7 +46,7 @@ const MainPage: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      const result = await generateStory(selectedImage, selectedGenre, user.id);
+      const result = await generateStory(selectedImage, selectedGenre, user.uid);
       toast({
         title: "Story created!",
         description: `"${result.title}" has been generated.`,

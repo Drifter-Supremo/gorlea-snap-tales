@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,19 +13,12 @@ import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage
 import { storage } from "@/lib/firebase";
 
 const SettingsPage: React.FC = () => {
-  const { user, updateUserProfile, isAuthenticated } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated && !user) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate, user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

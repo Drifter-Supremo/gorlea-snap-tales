@@ -75,7 +75,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Implement sign up functionality
 - [x] Implement login functionality
 - [x] Implement password reset
-- [ ] Add protected routes for authenticated users
+- [x] Add protected routes for authenticated users
 - [x] Remove guest access mode (decided not to implement)
 
 ### 2.3 Logo & Branding

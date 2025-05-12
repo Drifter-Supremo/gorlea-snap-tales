@@ -25,6 +25,9 @@
 - Implemented profile picture upload functionality in the settings page.
 - Fixed NavigationDrawer to correctly display user's name and profile picture.
 - Removed guest mode functionality as it was causing errors and is unnecessary for the application.
+- Created a dedicated `.env.firebase` file for Firebase configuration to improve security.
+- Implemented protected routes using React Router to ensure authenticated access to app pages.
+- Removed redundant authentication checks from individual page components.
 
 ## Next Steps
 
@@ -35,7 +38,7 @@
 5. ✅ Implement password reset functionality using Firebase Authentication.
 6. ✅ Implement profile picture upload functionality.
 7. ✅ Remove guest access mode.
-8. [ ] Add protected routes for authenticated users.
+8. ✅ Add protected routes for authenticated users.
 9. [ ] Set up Firestore collections structure and security rules.
 10. [ ] Configure Firebase Storage security rules.
 

@@ -21,16 +21,11 @@ const FavoritesPage: React.FC = () => {
   const [favoriteStories, setFavoriteStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isAuthenticated && !user) {
-      navigate("/");
-      return;
-    }
-
     // Load favorite stories
     const loadFavorites = () => {
       const favoriteIds = JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -40,7 +35,7 @@ const FavoritesPage: React.FC = () => {
     };
 
     loadFavorites();
-  }, [isAuthenticated, navigate, user]);
+  }, []);
 
   // Filter stories based on search term
   const filteredStories = favoriteStories.filter(story => {
@@ -54,9 +49,9 @@ const FavoritesPage: React.FC = () => {
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     const updatedFavorites = favorites.filter((id: string) => id !== storyId);
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-    
+
     setFavoriteStories(prev => prev.filter(story => story.id !== storyId));
-    
+
     toast({
       title: "Removed from favorites",
       description: "Story has been removed from your favorites.",
