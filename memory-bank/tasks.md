@@ -71,8 +71,8 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
   ```
 
 ### 2.2 Authentication Implementation
-- [ ] Create authentication context in `src/contexts/AuthContext.tsx`
-- [ ] Implement sign up functionality
+- [x] Create authentication context in `src/contexts/AuthContext.tsx`
+- [x] Implement sign up functionality
 - [ ] Implement login functionality
 - [ ] Implement password reset
 - [ ] Add protected routes for authenticated users

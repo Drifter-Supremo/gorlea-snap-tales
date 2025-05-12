@@ -6,13 +6,23 @@ import { getStorage } from 'firebase/storage';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCF-w2QyUD0xCdE0aHEjhDyQJaMRhfa57Y",
+  authDomain: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "gorlea-snaps.firebaseapp.com",
+  projectId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "gorlea-snaps",
+  storageBucket: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "gorlea-snaps.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "237260784307",
+  appId: import.meta.env.VITE_NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:237260784307:web:b162baa77794b271c926c6"
 };
+
+// Log the config for debugging (remove in production)
+console.log("Firebase config:", {
+  apiKey: firebaseConfig.apiKey ? "exists" : "missing",
+  authDomain: firebaseConfig.authDomain ? "exists" : "missing",
+  projectId: firebaseConfig.projectId ? "exists" : "missing",
+  storageBucket: firebaseConfig.storageBucket ? "exists" : "missing",
+  messagingSenderId: firebaseConfig.messagingSenderId ? "exists" : "missing",
+  appId: firebaseConfig.appId ? "exists" : "missing"
+});
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

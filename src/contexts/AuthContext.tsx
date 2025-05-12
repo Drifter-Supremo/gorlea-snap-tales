@@ -1,12 +1,26 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+  signInAnonymously,
+  User as FirebaseUser
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
+// Extended user interface that includes Firebase user properties and our custom properties
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  profilePicture?: string;
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  isAnonymous: boolean;
 }
 
 interface AuthContextType {
@@ -15,8 +29,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
-  continueAsGuest: () => void;
+  logout: () => Promise<void>;
+  continueAsGuest: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
 }
 
@@ -35,48 +49,80 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Check if the user is already logged in from localStorage
+  // Convert Firebase user to our User type
+  const formatUser = (firebaseUser: FirebaseUser): User => {
+    return {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName,
+      photoURL: firebaseUser.photoURL,
+      isAnonymous: firebaseUser.isAnonymous
+    };
+  };
+
+  // Set up auth state listener
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user", error);
-        localStorage.removeItem("user");
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsLoading(true);
+
+      if (firebaseUser) {
+        // User is signed in
+        const formattedUser = formatUser(firebaseUser);
+
+        // If the user has a name but no displayName, update their profile
+        if (!firebaseUser.displayName && !firebaseUser.isAnonymous) {
+          try {
+            // Check if we have additional user data in Firestore
+            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+            if (userDoc.exists() && userDoc.data().displayName) {
+              await updateProfile(firebaseUser, {
+                displayName: userDoc.data().displayName
+              });
+              formattedUser.displayName = userDoc.data().displayName;
+            }
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+          }
+        }
+
+        setUser(formattedUser);
+      } else {
+        // User is signed out
+        setUser(null);
       }
-    }
-    setIsLoading(false);
+
+      setIsLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
-  // Mock login functionality
+  // Real login functionality with Firebase
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call to authenticate
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
-      if (email && password) {
-        const mockUser = {
-          id: "user-1",
-          email,
-          name: email.split('@')[0],
-          profilePicture: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + email
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-      } else {
-        throw new Error("Invalid credentials");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      return userCredential;
+    } catch (error: any) {
+      let errorMessage = "Invalid email or password";
+
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later.";
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled.";
       }
-    } catch (error) {
+
       toast({
         title: "Login failed",
-        description: "Invalid email or password",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -88,30 +134,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call to register a new user
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
-      if (email && password) {
-        const mockUser = {
-          id: "user-" + Date.now(),
-          email,
-          name: name || email.split('@')[0],
-          profilePicture: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + email
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        toast({
-          title: "Account created",
-          description: "Welcome to Gorlea Snaps!",
-        });
-      } else {
-        throw new Error("Invalid credentials");
+      // Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // Update the user's profile with their name
+      await updateProfile(firebaseUser, {
+        displayName: name,
+        photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+      });
+
+      // Store additional user data in Firestore
+      await setDoc(doc(db, "users", firebaseUser.uid), {
+        displayName: name,
+        email: email,
+        photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      });
+
+      toast({
+        title: "Account created",
+        description: "Welcome to Gorlea Snaps!",
+      });
+
+      return userCredential;
+    } catch (error: any) {
+      let errorMessage = "Could not create your account";
+
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Email already in use. Try logging in instead.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use a stronger password.";
       }
-    } catch (error) {
+
       toast({
         title: "Sign up failed",
-        description: "Could not create your account",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -120,44 +182,75 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    toast({
-      title: "Logged out",
-      description: "You've been logged out successfully",
-    });
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logged out",
+        description: "You've been logged out successfully",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Logout failed",
+        description: "There was a problem logging you out",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
-  const continueAsGuest = () => {
-    const guestUser = {
-      id: "guest-" + Date.now(),
-      email: "guest@example.com",
-      name: "Guest User",
-      profilePicture: "https://api.dicebear.com/7.x/avataaars/svg?seed=guest"
-    };
-    
-    setUser(guestUser);
-    localStorage.setItem("user", JSON.stringify(guestUser));
-    toast({
-      title: "Guest access",
-      description: "You're browsing as a guest. Some features may be limited.",
-    });
+  const continueAsGuest = async () => {
+    setIsLoading(true);
+    try {
+      const userCredential = await signInAnonymously(auth);
+      const guestUser = userCredential.user;
+
+      // Update the anonymous user's profile
+      await updateProfile(guestUser, {
+        displayName: "Guest User",
+        photoURL: "https://api.dicebear.com/7.x/avataaars/svg?seed=guest"
+      });
+
+      toast({
+        title: "Guest access",
+        description: "You're browsing as a guest. Some features may be limited.",
+      });
+
+      return userCredential;
+    } catch (error) {
+      console.error("Error signing in as guest:", error);
+      toast({
+        title: "Guest access failed",
+        description: "Could not continue as guest",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const forgotPassword = async (email: string) => {
     try {
-      // In a real app, this would be an API call to send a reset email
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
+      await sendPasswordResetEmail(auth, email);
       toast({
         title: "Password reset email sent",
         description: "Check your inbox for instructions",
       });
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = "Failed to send reset email";
+
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email address.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address.";
+      }
+
       toast({
-        title: "Failed to send reset email",
-        description: "Please try again later",
+        title: "Password reset failed",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -167,7 +260,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !user.isAnonymous,
     login,
     signUp,
     logout,
