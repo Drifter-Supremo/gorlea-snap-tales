@@ -15,6 +15,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Clone the frontend repository: `git clone [repository-url]`
 - [x] Navigate to project directory: `cd gorlea-snaps`
 - [x] Install dependencies: `npm install`
+- [x] Install Firebase package: `npm install firebase`
 - [x] Create `.env.local` file for environment variables:
   ```
   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
@@ -28,25 +29,26 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Add `.env.local` to `.gitignore` if not already there
 
 ### 1.3 Firebase Project Setup
-- [ ] Initialize Firebase in your project: `firebase init`
-  - Select Authentication, Firestore, Storage
-  - Use default options for database rules
-- [ ] Configure Firebase Authentication
-  - Enable Email/Password authentication in Firebase Console
-  - (Optional) Enable Google authentication
-  - Set up password reset email template
-- [ ] Set up Firestore Database
-  - Create initial collections structure (users, stories)
-  - Configure security rules
-- [ ] Configure Firebase Storage
-  - Set up storage bucket for images
-  - Configure security rules for storage
+- [x] ~~Initialize Firebase in your project: `firebase init`~~
+  - ~~Select Authentication, Firestore, Storage~~
+  - ~~Use default options for database rules~~
+  - *Note: Services configured directly through Firebase Console instead*
+- [x] Configure Firebase Authentication
+  - [x] Enable Email/Password authentication in Firebase Console
+  - [ ] (Optional) Enable Google authentication
+  - [x] Set up password reset email template
+- [x] Set up Firestore Database
+  - [x] Create initial collections structure (users, stories)
+  - [x] Configure security rules
+- [x] Configure Firebase Storage
+  - [x] Set up storage bucket for images
+  - [x] Configure security rules for storage
 
 ## Phase 2: Frontend Configuration
 
 ### 2.1 Firebase Integration
-- [ ] Verify Firebase config in your app matches your project
-- [ ] Implement Firebase initialization in `src/lib/firebase.ts`:
+- [x] Verify Firebase config in your app matches your project
+- [x] Implement Firebase initialization in `src/lib/firebase.ts`:
   ```typescript
   import { initializeApp } from 'firebase/app';
   import { getAuth } from 'firebase/auth';
