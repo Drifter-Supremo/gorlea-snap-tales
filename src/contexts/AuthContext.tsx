@@ -8,7 +8,6 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
-  signInAnonymously,
   User as FirebaseUser
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -20,7 +19,6 @@ interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  isAnonymous: boolean;
 }
 
 interface AuthContextType {
@@ -30,7 +28,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
-  continueAsGuest: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   updateUserProfile: (profileData: { displayName?: string; photoURL?: string }) => Promise<void>;
 }
@@ -56,8 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       displayName: firebaseUser.displayName,
-      photoURL: firebaseUser.photoURL,
-      isAnonymous: firebaseUser.isAnonymous
+      photoURL: firebaseUser.photoURL
     };
   };
 
@@ -71,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const formattedUser = formatUser(firebaseUser);
 
         // If the user has a name but no displayName, update their profile
-        if (!firebaseUser.displayName && !firebaseUser.isAnonymous) {
+        if (!firebaseUser.displayName) {
           try {
             // Check if we have additional user data in Firestore
             const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
@@ -103,12 +99,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      return userCredential;
     } catch (error: any) {
       let errorMessage = "Invalid email or password";
 
@@ -158,8 +153,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Account created",
         description: "Welcome to Gorlea Snaps!",
       });
-
-      return userCredential;
     } catch (error: any) {
       let errorMessage = "Could not create your account";
 
@@ -201,36 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const continueAsGuest = async () => {
-    setIsLoading(true);
-    try {
-      const userCredential = await signInAnonymously(auth);
-      const guestUser = userCredential.user;
 
-      // Update the anonymous user's profile
-      await updateProfile(guestUser, {
-        displayName: "Guest User",
-        photoURL: "https://api.dicebear.com/7.x/avataaars/svg?seed=guest"
-      });
-
-      toast({
-        title: "Guest access",
-        description: "You're browsing as a guest. Some features may be limited.",
-      });
-
-      return userCredential;
-    } catch (error) {
-      console.error("Error signing in as guest:", error);
-      toast({
-        title: "Guest access failed",
-        description: "Could not continue as guest",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const forgotPassword = async (email: string) => {
     try {
@@ -310,11 +274,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     isLoading,
-    isAuthenticated: !!user && !user.isAnonymous,
+    isAuthenticated: !!user,
     login,
     signUp,
     logout,
-    continueAsGuest,
     forgotPassword,
     updateUserProfile
   };

@@ -5,7 +5,8 @@ A mobile-first web application that generates AI stories based on uploaded photo
 
 ## Features
 
-- User authentication (login/signup, guest access)
+- User authentication (login/signup)
+- Profile picture upload and management
 - Image upload and preview
 - Genre selection (Rom-Com, Horror, Sci-Fi, Film Noir)
 - AI story generation
@@ -88,7 +89,7 @@ async function login(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-  
+
   return response.json();
 }
 
@@ -98,7 +99,7 @@ async function register(email, password, name) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name })
   });
-  
+
   return response.json();
 }
 ```
@@ -112,12 +113,12 @@ async function generateStory(imageFile, genre, userId) {
   formData.append('image', imageFile);
   formData.append('genre', genre);
   formData.append('userId', userId);
-  
+
   const response = await fetch('/api/stories/generate', {
     method: 'POST',
     body: formData
   });
-  
+
   return response.json();
 }
 
@@ -134,12 +135,12 @@ async function getStories(userId) {
 async function uploadImage(file) {
   const formData = new FormData();
   formData.append('image', file);
-  
+
   const response = await fetch('/api/upload', {
     method: 'POST',
     body: formData
   });
-  
+
   return response.json();
 }
 ```

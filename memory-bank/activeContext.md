@@ -22,18 +22,22 @@
 - Enhanced the sign-up form with validation, error handling, and loading states.
 - Implemented Firebase user creation and Firestore user document creation.
 - Updated documentation to reflect completed tasks.
+- Implemented profile picture upload functionality in the settings page.
+- Fixed NavigationDrawer to correctly display user's name and profile picture.
+- Removed guest mode functionality as it was causing errors and is unnecessary for the application.
 
 ## Next Steps
 
 1. ✅ Implement real authentication using Firebase Authentication.
 2. ✅ Update the AuthContext to use Firebase Authentication instead of mock data.
 3. ✅ Implement sign up functionality using Firebase Authentication.
-4. Implement login functionality using Firebase Authentication.
-5. Implement password reset functionality using Firebase Authentication.
-6. Add protected routes for authenticated users.
-7. Create guest access mode.
-8. Set up Firestore collections structure and security rules.
-9. Configure Firebase Storage security rules.
+4. ✅ Implement login functionality using Firebase Authentication.
+5. ✅ Implement password reset functionality using Firebase Authentication.
+6. ✅ Implement profile picture upload functionality.
+7. ✅ Remove guest access mode.
+8. [ ] Add protected routes for authenticated users.
+9. [ ] Set up Firestore collections structure and security rules.
+10. [ ] Configure Firebase Storage security rules.
 
 ## Active Decisions and Considerations
 

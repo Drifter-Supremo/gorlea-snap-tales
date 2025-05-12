@@ -73,10 +73,10 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ### 2.2 Authentication Implementation
 - [x] Create authentication context in `src/contexts/AuthContext.tsx`
 - [x] Implement sign up functionality
-- [ ] Implement login functionality
-- [ ] Implement password reset
+- [x] Implement login functionality
+- [x] Implement password reset
 - [ ] Add protected routes for authenticated users
-- [ ] Create guest access mode
+- [x] Remove guest access mode (decided not to implement)
 
 ### 2.3 Logo & Branding
 - [ ] Add logo to `public/` directory
@@ -116,10 +116,10 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ## Phase 4: User Features
 
 ### 4.1 User Profile
-- [ ] Create profile page component
-- [ ] Implement profile picture upload & update
+- [x] Create profile page component (SettingsPage)
+- [x] Implement profile picture upload & update
 - [ ] Add user display name management
-- [ ] Create account settings page
+- [x] Create account settings page
 - [ ] Implement account deletion
 
 ### 4.2 Favorites Management

@@ -18,7 +18,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, signUp, continueAsGuest, isAuthenticated, isLoading: authLoading, forgotPassword } = useAuth();
+  const { login, signUp, isAuthenticated, isLoading: authLoading, forgotPassword } = useAuth();
 
   // Form states
   const [loginEmail, setLoginEmail] = useState("");
@@ -170,14 +170,7 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  const handleGuest = async () => {
-    try {
-      await continueAsGuest();
-      navigate("/app");
-    } catch (error) {
-      console.error("Guest login failed", error);
-    }
-  };
+
 
   if (authLoading) {
     return (
@@ -338,15 +331,6 @@ const AuthPage: React.FC = () => {
                         "Sign In"
                       )}
                     </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGuest}
-                      disabled={isLoggingIn}
-                      className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-                    >
-                      Continue as Guest
-                    </Button>
                   </CardFooter>
                 </form>
               </Card>
@@ -463,15 +447,6 @@ const AuthPage: React.FC = () => {
                       ) : (
                         "Create Account"
                       )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGuest}
-                      disabled={isSigningUp}
-                      className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-                    >
-                      Continue as Guest
                     </Button>
                   </CardFooter>
                 </form>
