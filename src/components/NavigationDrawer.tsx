@@ -27,14 +27,14 @@ const NavigationDrawer = () => {
         <div className="flex flex-col space-y-4 mb-6">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-gorlea-accent">
-              <img 
-                src={user?.profilePicture || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"} 
-                alt="Profile" 
+              <img
+                src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
+                alt="Profile"
                 className="h-full w-full object-cover"
               />
             </div>
             <div>
-              <h3 className="font-medium">{user?.name || "User"}</h3>
+              <h3 className="font-medium">{user?.displayName || "User"}</h3>
               <p className="text-sm text-gorlea-text/70">{user?.email || ""}</p>
             </div>
           </div>
@@ -64,8 +64,8 @@ const NavigationDrawer = () => {
             <Settings className="mr-2 h-5 w-5" />
             Settings
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="w-full justify-start text-gorlea-text hover:bg-gorlea-tertiary hover:text-gorlea-text"
             onClick={() => logout()}
           >
