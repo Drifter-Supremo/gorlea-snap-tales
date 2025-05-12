@@ -24,10 +24,10 @@ A mobile-first web application that generates AI stories based on uploaded photo
 - Lucide React for icons
 
 ### Backend Requirements (Future Implementation)
-- Authentication service (e.g., Firebase Auth, Auth0, or custom)
-- Image upload and storage (e.g., Firebase Storage, AWS S3)
-- Database for user data and stories (e.g., Firestore, MongoDB)
-- AI integration for story generation
+- Authentication service (Firebase Auth)
+- Image upload and storage (Cloudinary)
+- Database for user data and stories (Firestore)
+- AI integration for story generation (OpenAI GPT-4.1)
 
 ## Backend Architecture
 
@@ -88,7 +88,7 @@ async function login(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-  
+
   return response.json();
 }
 
@@ -98,7 +98,7 @@ async function register(email, password, name) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name })
   });
-  
+
   return response.json();
 }
 ```
@@ -112,12 +112,12 @@ async function generateStory(imageFile, genre, userId) {
   formData.append('image', imageFile);
   formData.append('genre', genre);
   formData.append('userId', userId);
-  
+
   const response = await fetch('/api/stories/generate', {
     method: 'POST',
     body: formData
   });
-  
+
   return response.json();
 }
 
@@ -134,12 +134,12 @@ async function getStories(userId) {
 async function uploadImage(file) {
   const formData = new FormData();
   formData.append('image', file);
-  
+
   const response = await fetch('/api/upload', {
     method: 'POST',
     body: formData
   });
-  
+
   return response.json();
 }
 ```
@@ -190,6 +190,31 @@ For {genre}, focus on {genre_specific_instructions}.
 4. Use a job queue for asynchronous story generation
 5. Implement database indexing for performance
 6. Consider read replicas for database scaling
+
+## Environment Setup
+
+To set up the development environment:
+
+1. Clone the repository
+2. Copy `.env.local.example` to `.env.local` and fill in the values:
+   ```
+   # Firebase
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+
+   # OpenAI
+   OPENAI_API_KEY=your_openai_key
+
+   # Cloudinary
+   VITE_CLOUDINARY_CLOUD_NAME=dvir930ty
+   VITE_CLOUDINARY_UNSIGNED_PRESET=gorlea-snaps
+   ```
+3. Install dependencies: `npm install`
+4. Start the development server: `npm run dev`
 
 ## Future Enhancements
 
