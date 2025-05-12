@@ -262,7 +262,7 @@ export const generateStory = async (
 
     // Provide more specific error messages based on the error
     if (error.message && error.message.includes("Cloudinary")) {
-      console.error("Cloudinary error details:", error);
+      console.error("Cloudinary upload error details:", error);
       throw new Error(`Image upload failed: ${error.message}`);
     } else if (error.message && error.message.includes("No image file")) {
       throw new Error("Please upload an image to generate a story");

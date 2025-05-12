@@ -31,10 +31,14 @@
 - Firebase project "gorlea-snaps" is set as the active project.
 - Firebase services (Authentication, Firestore, Storage) are enabled in the Firebase Console.
 - Firebase initialization file is created and configured.
-- Project is transitioning from setup to implementation phase.
-- Ready to implement real authentication using Firebase Authentication.
+- Cloudinary integration is implemented for image uploads.
+- Story generation with mock data is working.
+- Project is in the implementation phase.
+- Authentication using Firebase Authentication is implemented.
 
 ## Known Issues
 
 - Backend and AI integration pending setup and implementation.
 - Security and performance optimizations to be addressed during development.
+- Cloudinary configuration needs to be properly secured in production.
+- Need to implement proper error handling for image uploads.

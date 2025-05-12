@@ -127,20 +127,40 @@ async function getStories(userId) {
 }
 ```
 
-### Image Upload API
+### Image Upload API (Cloudinary)
 
 ```javascript
-// Example image upload integration
-async function uploadImage(file) {
-  const formData = new FormData();
-  formData.append('image', file);
+// Example image upload integration with Cloudinary
+async function uploadToCloudinary(file, userId) {
+  try {
+    // Get Cloudinary configuration from environment variables
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UNSIGNED_PRESET;
 
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    body: formData
-  });
+    // Create a FormData object to send the file
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset); // Use an unsigned upload preset
+    formData.append("folder", `users/${userId}`); // Organize by user ID
 
-  return response.json();
+    // Upload to Cloudinary using the upload API
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Cloudinary upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Return the secure URL of the uploaded image
+    return data.secure_url;
+  } catch (error) {
+    console.error("Error in uploadToCloudinary:", error);
+    throw new Error(`Cloudinary upload error: ${error.message}`);
+  }
 }
 ```
 

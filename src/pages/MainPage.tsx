@@ -71,18 +71,15 @@ const MainPage: React.FC = () => {
       let errorTitle = "Failed to generate story";
 
       if (error.message) {
-        if (error.message.includes("cloud_name is disabled")) {
-          errorTitle = "Cloudinary Configuration Error";
-          errorMessage = "The Cloudinary account is not properly configured. Please check your Cloudinary settings.";
+        if (error.message.includes("Cloudinary")) {
+          errorTitle = "Cloudinary Upload Error";
+          errorMessage = "Failed to upload image to Cloudinary. Please check your environment variables.";
         } else if (error.message.includes("401") || error.message.includes("Unauthorized")) {
           errorTitle = "Authentication Error";
           errorMessage = "Failed to authenticate with the image service. Please try again later.";
         } else if (error.message.includes("upload")) {
           errorTitle = "Upload Failed";
           errorMessage = "Failed to upload image. Please check your connection and try again.";
-        } else if (error.message.includes("Cloudinary")) {
-          errorTitle = "Image Service Error";
-          errorMessage = "There was a problem with the image service. Please try a different image or try again later.";
         } else if (error.message.includes("No image file")) {
           errorTitle = "Missing Image";
           errorMessage = "Please upload an image to generate a story.";
