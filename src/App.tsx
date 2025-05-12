@@ -8,6 +8,7 @@ import AuthPage from "./pages/AuthPage";
 import MainPage from "./pages/MainPage";
 import StoryPage from "./pages/StoryPage";
 import FavoritesPage from "./pages/FavoritesPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/app" element={<MainPage />} />
             <Route path="/story/:id" element={<StoryPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -32,6 +32,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   continueAsGuest: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
+  updateUserProfile: (profileData: { displayName?: string; photoURL?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -257,6 +258,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserProfile = async (profileData: { displayName?: string; photoURL?: string }) => {
+    if (!auth.currentUser) {
+      throw new Error("No authenticated user");
+    }
+
+    setIsLoading(true);
+    try {
+      // Update Firebase Auth profile
+      await updateProfile(auth.currentUser, profileData);
+
+      // Update Firestore document
+      if (auth.currentUser.uid) {
+        await setDoc(doc(db, "users", auth.currentUser.uid),
+          {
+            ...profileData,
+            ...(profileData.photoURL && { photoURL: profileData.photoURL }),
+            ...(profileData.displayName && { displayName: profileData.displayName }),
+            updatedAt: new Date().toISOString()
+          },
+          { merge: true }
+        );
+      }
+
+      // Update local user state
+      if (user) {
+        setUser({
+          ...user,
+          ...(profileData.displayName && { displayName: profileData.displayName }),
+          ...(profileData.photoURL && { photoURL: profileData.photoURL })
+        });
+      }
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update failed",
+        description: "There was a problem updating your profile",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -265,7 +315,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     logout,
     continueAsGuest,
-    forgotPassword
+    forgotPassword,
+    updateUserProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

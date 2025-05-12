@@ -60,10 +60,12 @@ const NavigationDrawer = () => {
         <Separator className="bg-gorlea-tertiary my-4" />
 
         <div className="flex flex-col space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-gorlea-text hover:bg-gorlea-tertiary hover:text-gorlea-text">
-            <Settings className="mr-2 h-5 w-5" />
-            Settings
-          </Button>
+          <Link to="/settings">
+            <Button variant="ghost" className="w-full justify-start text-gorlea-text hover:bg-gorlea-tertiary hover:text-gorlea-text">
+              <Settings className="mr-2 h-5 w-5" />
+              Settings
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             className="w-full justify-start text-gorlea-text hover:bg-gorlea-tertiary hover:text-gorlea-text"
