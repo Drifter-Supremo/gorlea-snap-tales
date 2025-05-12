@@ -90,11 +90,11 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ## Phase 3: Core Functionality
 
 ### 3.1 Image Upload Component
-- [ ] Create image upload and preview component
-- [ ] Implement drag & drop functionality
-- [ ] Add file validation (size, type)
-- [ ] Create pre-upload image compression/resizing function
-- [ ] Implement Firebase Storage upload function
+- [x] Create image upload and preview component
+- [x] Implement drag & drop functionality
+- [x] Add file validation (size, type)
+- [x] Create pre-upload image compression/resizing function
+- [x] Implement Cloudinary upload function (replaced Firebase Storage)
 
 ### 3.2 Genre Selection
 - [ ] Build genre selection UI component
