@@ -4,6 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { Camera, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { compressImage } from "@/lib/imageUtils";
 
 interface ImageUploaderProps {
   onImageUpload: (file: File, previewUrl: string) => void;
@@ -13,7 +14,7 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl }) => {
   const [dragActive, setDragActive] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) {
       toast({
         title: "Upload failed",
@@ -23,13 +24,41 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
       return;
     }
 
-    const file = acceptedFiles[0];
-    const fileUrl = URL.createObjectURL(file);
-    onImageUpload(file, fileUrl);
-    setDragActive(false);
+    try {
+      const file = acceptedFiles[0];
+
+      // Show loading toast
+      toast({
+        title: "Processing image",
+        description: "Optimizing image for upload...",
+      });
+
+      // Compress the image
+      const compressedFile = await compressImage(file);
+
+      // Create a preview URL
+      const fileUrl = URL.createObjectURL(compressedFile);
+
+      // Pass the compressed file and preview URL to the parent component
+      onImageUpload(compressedFile, fileUrl);
+      setDragActive(false);
+
+      // Show success toast
+      toast({
+        title: "Image ready",
+        description: `Image optimized: ${Math.round(compressedFile.size / 1024)}KB`,
+      });
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toast({
+        title: "Processing failed",
+        description: "Failed to process the image. Please try another one.",
+        variant: "destructive",
+      });
+    }
   }, [onImageUpload]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.heic']
@@ -44,29 +73,29 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
   };
 
   return (
-    <div 
-      {...getRootProps()} 
+    <div
+      {...getRootProps()}
       className={`dropzone ${isDragActive || dragActive ? 'active' : ''} ${previewUrl ? 'relative h-60 sm:h-80' : ''}`}
       onDragEnter={() => setDragActive(true)}
       onDragLeave={() => setDragActive(false)}
     >
       <input {...getInputProps()} />
-      
+
       {previewUrl ? (
         <>
-          <img 
-            src={previewUrl} 
-            alt="Uploaded preview" 
-            className="absolute inset-0 w-full h-full object-cover rounded-lg" 
+          <img
+            src={previewUrl}
+            alt="Uploaded preview"
+            className="absolute inset-0 w-full h-full object-cover rounded-lg"
           />
           <div className="absolute inset-0 bg-gorlea-background/50 flex flex-col items-center justify-center">
             <p className="text-gorlea-text mb-4 text-center">
               <span className="text-gorlea-accent font-bold">Image uploaded!</span><br/>
               Click or drag to replace
             </p>
-            <Button 
-              variant="secondary" 
-              size="sm" 
+            <Button
+              variant="secondary"
+              size="sm"
               className="bg-gorlea-tertiary hover:bg-gorlea-tertiary/80 text-gorlea-text"
               onClick={handleClearImage}
             >
@@ -87,9 +116,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
               <Camera className="h-12 w-12 text-gorlea-tertiary mb-4" />
               <p className="text-gorlea-text text-center mb-2">Drag & drop your image here</p>
               <p className="text-gorlea-text/70 text-sm text-center mb-4">or click to browse</p>
-              <Button 
-                variant="secondary" 
-                size="sm" 
+              <Button
+                variant="secondary"
+                size="sm"
                 className="bg-gorlea-tertiary hover:bg-gorlea-tertiary/80 text-gorlea-text"
               >
                 <Upload className="mr-2 h-4 w-4" />

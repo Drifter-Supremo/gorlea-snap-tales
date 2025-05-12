@@ -54,9 +54,19 @@ const MainPage: React.FC = () => {
       navigate(`/story/${result.id}`);
     } catch (error) {
       console.error("Error generating story:", error);
+
+      // Provide more specific error messages based on the error type
+      let errorMessage = "Please try again later.";
+
+      if (error.message && error.message.includes("upload")) {
+        errorMessage = "Failed to upload image. Please check your connection and try again.";
+      } else if (error.message && error.message.includes("Cloudinary")) {
+        errorMessage = "Image service error. Please try a different image or try again later.";
+      }
+
       toast({
         title: "Failed to generate story",
-        description: "Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
