@@ -28,6 +28,11 @@
 - Created a dedicated `.env.firebase` file for Firebase configuration to improve security.
 - Implemented protected routes using React Router to ensure authenticated access to app pages.
 - Removed redundant authentication checks from individual page components.
+- Added the Gorlea Snaps logo to the application:
+  - Updated the Logo component to display the image from public/new-gorlea-logo.png
+  - Added the logo to the login page (centered above the text)
+  - Added the logo to the header (in the top-left corner)
+  - Set the logo as the application favicon and updated Open Graph images
 
 ## Next Steps
 
@@ -39,8 +44,9 @@
 6. ✅ Implement profile picture upload functionality.
 7. ✅ Remove guest access mode.
 8. ✅ Add protected routes for authenticated users.
-9. [ ] Set up Firestore collections structure and security rules.
-10. [ ] Configure Firebase Storage security rules.
+9. ✅ Add logo to the application and set as favicon.
+10. [ ] Set up Firestore collections structure and security rules.
+11. [ ] Configure Firebase Storage security rules.
 
 ## Active Decisions and Considerations
 

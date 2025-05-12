@@ -79,9 +79,11 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Remove guest access mode (decided not to implement)
 
 ### 2.3 Logo & Branding
-- [ ] Add logo to `public/` directory
-- [ ] Update logo references in components
-- [ ] Set app favicon
+- [x] Add logo to `public/` directory
+- [x] Update logo references in components
+- [x] Add logo to the login page
+- [x] Add logo to the header
+- [x] Set logo as favicon
 - [ ] Ensure consistent brand colors across components
 
 ## Phase 3: Core Functionality
