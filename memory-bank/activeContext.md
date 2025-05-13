@@ -2,10 +2,10 @@
 
 ## Current Work Focus
 
-- Implementing Firebase Storage for story image uploads.
-- Resolving CORS issues with Firebase Storage.
-- Ensuring proper security rules for Firebase Storage.
-- Documenting best practices for Firebase Storage usage.
+- Implementing OpenAI GPT-4.1 integration for story generation.
+- Creating genre-specific prompts for AI story generation.
+- Ensuring proper handling of API responses and error cases.
+- Securing the OpenAI API key in environment variables.
 
 ## Recent Changes
 
@@ -50,6 +50,12 @@
   - Configured Firebase Storage security rules to allow authenticated access
   - Resolved CORS issues by using the Firebase SDK for storage operations
   - Created comprehensive documentation on Firebase Storage best practices
+- Successfully implemented OpenAI GPT-4.1 integration for story generation:
+  - Created a dedicated OpenAI client utility
+  - Updated the storyGenerator service to use the OpenAI API
+  - Implemented genre-specific prompts for AI story generation
+  - Added proper error handling for API calls
+  - Created comprehensive documentation on OpenAI integration
 
 ## Next Steps
 
@@ -65,9 +71,10 @@
 10. ✅ Build genre selection UI component with tooltips and visual feedback.
 11. ✅ Configure Firebase Storage security rules for story images.
 12. ✅ Implement Firebase Storage for story image uploads.
-13. [ ] Set up Firestore collections structure and security rules.
-14. [ ] Implement OpenAI integration for story generation.
+13. ✅ Implement OpenAI integration for story generation.
+14. [ ] Set up Firestore collections structure and security rules.
 15. [ ] Refine Firebase Storage security rules for production.
+16. [ ] Enhance error handling and user feedback for story generation.
 
 ## Active Decisions and Considerations
 
@@ -77,3 +84,5 @@
 - We'll focus on one phase at a time, ensuring each component is properly implemented before moving on.
 - Always use the Firebase SDK for storage operations to avoid CORS issues.
 - Current Firebase Storage security rules are permissive for development; will need to be tightened for production.
+- Using OpenAI GPT-4.1 model (gpt-4.1-2025-04-14) for story generation.
+- OpenAI API key is stored in a separate .env.openai file for security.

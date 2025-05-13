@@ -227,7 +227,7 @@ To set up the development environment:
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
    # OpenAI
-   OPENAI_API_KEY=your_openai_key
+   VITE_OPENAI_API_KEY=your_openai_key
 
    # Cloudinary
    VITE_CLOUDINARY_CLOUD_NAME=dvir930ty

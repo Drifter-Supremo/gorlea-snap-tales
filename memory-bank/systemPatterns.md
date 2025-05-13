@@ -3,16 +3,17 @@
 ## System Architecture
 
 - **Frontend:** React.js with TypeScript, using Tailwind CSS and Shadcn UI for styling and components. React Router manages navigation, and React Query handles data fetching and caching.
-- **Backend:** Firebase (Authentication, Firestore, Storage) and GPT 4.1 API integration for AI story generation.
+- **Backend:** Firebase (Authentication, Firestore, Storage) and OpenAI GPT-4.1 API integration for AI story generation.
 - **Mobile-First Design:** All UI components and layouts are optimized for mobile devices, with responsive design principles applied throughout.
 
 ## Key Technical Decisions
 
 - Use of Firebase for authentication, storage, and real-time database to accelerate development and leverage managed services.
-- Integration of GPT 4.1 for advanced AI-driven story generation, including image analysis and genre-specific prompt engineering.
+- Integration of OpenAI GPT-4.1 for advanced AI-driven story generation, including image analysis and genre-specific prompt engineering.
 - Adoption of React Query for efficient data management and caching.
 - Modular component structure for maintainability and scalability.
 - Use of Firebase SDK for all storage operations to avoid CORS issues.
+- Implementation of genre-specific prompts for tailored AI story generation.
 
 ## Design Patterns in Use
 
@@ -48,3 +49,12 @@
 - **User-Specific Paths:** Include user ID in storage paths to facilitate security rule implementation.
 - **Timestamp-Based Filenames:** Use timestamps in filenames to avoid collisions.
 - **Download URL Retrieval:** Always retrieve download URLs after upload rather than constructing them manually.
+
+## OpenAI Integration Patterns
+
+- **Genre-Specific Prompts:** Tailor prompts based on the selected genre for more relevant story generation.
+- **System and User Messages:** Use system messages to set the tone and user messages for specific instructions.
+- **Temperature Control:** Adjust temperature parameter to balance creativity and coherence.
+- **Response Parsing:** Extract title and content from the AI response with robust parsing logic.
+- **Error Handling:** Implement comprehensive error handling for API calls with user-friendly messages.
+- **Environment Variables:** Store API keys in environment variables for security.

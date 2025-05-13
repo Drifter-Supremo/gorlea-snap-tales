@@ -24,7 +24,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-  OPENAI_API_KEY=your_openai_key
+  VITE_OPENAI_API_KEY=your_openai_key
   ```
 - [x] Add `.env.local` to `.gitignore` if not already there
 
