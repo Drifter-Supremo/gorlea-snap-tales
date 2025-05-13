@@ -62,12 +62,15 @@ The story generation process now follows these steps:
 
 ### Genre-Specific Prompts
 
-We've created simplified genre-specific prompts to guide the AI in generating shorter, simpler stories that match the selected genre. We've also added specific formatting instructions to avoid markdown formatting, asterisks, and dashes:
+We've completely revamped our genre-specific prompts to guide the AI in generating more intense, creative stories with high stakes and unexpected twists. While still maintaining formatting requirements, we've shifted from simple stories to powerful narratives:
 
-- **Rom-Com**: "Write a short, simple romantic comedy story based on this image. The story should be fun, sweet, and have a happy ending. Look carefully at what's in the image: people, animals, places, or things. Base your story directly on what you see. If there are people, use how they look and where they are. If it's a place or object, create simple characters that would be there. Make sure your story clearly connects to the image so readers can see how they relate. Use commas or line breaks instead of dashes. Don't use asterisks or special characters."
-- **Horror**: "Write a short, simple scary story based on this image. The story should be spooky but not too frightening. Look carefully at what's in the image: people, animals, places, or things. Base your story directly on what you see. If there are people, use how they look and where they are to create tension. If it's a place or object, make it seem a little creepy. Make sure your story clearly connects to the image so readers can see how they relate. Use commas or line breaks instead of dashes. Don't use asterisks or special characters."
-- **Sci-Fi**: "Write a short, simple science fiction story based on this image. The story should be about future technology, space, or something imaginary. Look carefully at what's in the image: people, animals, places, or things. Base your story directly on what you see. If there are people, think about how they might use cool future technology. If it's a place or object, imagine it in the future. Make sure your story clearly connects to the image so readers can see how they relate. Use commas or line breaks instead of dashes. Don't use asterisks or special characters."
-- **Film-Noir**: "Write a short, simple detective story based on this image. The story should have a mystery to solve. Look carefully at what's in the image: people, animals, places, or things. Base your story directly on what you see. If there are people, think about what secrets they might have. If it's a place or object, make it an important clue. Make sure your story clearly connects to the image so readers can see how they relate. Use commas or line breaks instead of dashes. Don't use asterisks or special characters."
+- **Rom-Com**: "Create an INTENSE romantic comedy story inspired by this image. While rom-coms are typically light, yours should have HIGH STAKES and UNEXPECTED TWISTS. Use the people, setting, and objects in the image as a starting point, but then take the story in surprising directions. If you see people, imagine their complex romantic histories, secret desires, or unexpected connections. If it's a location, envision what life-changing romantic encounter could happen there. Include: 1) A powerful attraction or conflict between characters, 2) A seemingly insurmountable obstacle to love, 3) A surprising twist that changes everything, 4) Genuine emotional depth beneath the humor. Make the reader feel both laughter and heartache. Use proper dialogue formatting with quotation marks. Ensure perfect grammar and logical consistency."
+
+- **Horror**: "Create a TERRIFYING horror story inspired by this image. Your story should be deeply unsettling with HIGH STAKES and SHOCKING REVELATIONS. Use the people, setting, and objects in the image as a foundation, but then build a nightmare around them. If you see people, imagine what horrific situations they might encounter or what dark secrets they might harbor. If it's a location, envision what unspeakable events could unfold there. Include: 1) An atmosphere of mounting dread, 2) A threat that feels genuinely dangerous or supernatural, 3) A twist that reveals something worse than the reader imagined, 4) Visceral descriptions that make the horror feel real. Make the reader feel genuine fear. Use proper dialogue formatting with quotation marks. Ensure perfect grammar and logical consistency."
+
+- **Sci-Fi**: "Create a MIND-BENDING science fiction story inspired by this image. Your story should feature REVOLUTIONARY CONCEPTS and REALITY-ALTERING REVELATIONS. Use the people, setting, and objects in the image as a starting point, but then launch into extraordinary speculative territory. If you see people, imagine how advanced technology might transform their existence or what cosmic truths they might discover. If it's a location, envision how it might exist in a radically different future or alternate reality. Include: 1) A speculative concept that challenges our understanding of reality, 2) High-stakes consequences that extend beyond individual characters, 3) A profound revelation that changes everything we thought we knew, 4) Vivid descriptions of futuristic or alien elements. Make the reader's mind expand with wonder. Use proper dialogue formatting with quotation marks. Ensure perfect grammar and logical consistency."
+
+- **Film-Noir**: "Create a GRIPPING detective noir story inspired by this image. Your story should feature DEADLY STAKES and SHOCKING BETRAYALS. Use the people, setting, and objects in the image as initial clues, but then weave a complex web of deception around them. If you see people, imagine what dangerous secrets they might be hiding or what desperate situations they might be trapped in. If it's a location, envision what crimes or conspiracies might be concealed there. Include: 1) A morally complex protagonist facing impossible choices, 2) A mystery with layers of deception, 3) A twist that reveals a betrayal or hidden truth, 4) Atmospheric descriptions that evoke tension and shadow. Make the reader feel the weight of corruption and danger. Use proper dialogue formatting with quotation marks. Ensure perfect grammar and logical consistency."
 
 ### OpenAI API Call with Image Analysis
 
@@ -79,7 +82,7 @@ const completion = await openai.chat.completions.create({
   messages: [
     {
       role: "system",
-      content: "You are Gorlea, a creative storyteller who specializes in writing engaging short stories in various genres. Your stories should be SHORT (300-500 words maximum), with simple language that's easy to read and understand. Use everyday vocabulary and short sentences. Avoid complex words, technical jargon, or overly flowery descriptions. Your stories should have a clear beginning, middle, and end with a simple plot. You have a unique ability to analyze images and create stories that directly connect to what's shown in the picture. You adapt your approach based on whether the image contains people, animals, objects, landscapes, or fictional characters. You always ensure your story remains closely tied to the visual elements in the image so readers can clearly see the connection between your story and the picture they uploaded. FORMATTING RULES: 1) Do NOT use markdown formatting in your stories. 2) Do NOT use asterisks (*) or dashes (-) in your text. 3) Use commas, periods, or line breaks instead of dashes. 4) Do NOT use special characters like asterisks in titles. 5) Write in plain text format only. 6) Do NOT use bullet points or numbered lists. 7) Do NOT use any non-English text or symbols. 8) Format paragraphs with simple line breaks only."
+      content: "You are Gorlea, a master storyteller known for creating INTENSE, MIND-BLOWING short stories that leave readers stunned. You specialize in crafting powerful narratives with unexpected twists, high stakes, and emotional impact. Your stories should be SHORT (300-500 words) but POWERFUL, using vivid language that creates strong imagery. While you should keep vocabulary accessible, don't shy away from evocative descriptions that bring your stories to life. Your stories must have a clear beginning that hooks the reader, a middle that raises the stakes dramatically, and an ending with a powerful twist or revelation that changes everything. You are a creative genius who uses images as INSPIRATION rather than strict templates. When shown an image, extract the key elements (people, setting, objects, mood) but then BUILD BEYOND what's literally shown to create something extraordinary. If you see people in an image, imagine their secret motivations, hidden pasts, or unexpected futures. If you see a location, envision what dramatic events could unfold there. Every story should contain: 1) High stakes (life/death, profound change, shocking discovery), 2) Intense emotion (fear, love, wonder, desperation), 3) A twist or revelation that readers won't see coming. FORMATTING RULES: Write in plain text only. NO markdown formatting. NO asterisks or dashes. Use commas, periods, or line breaks instead. Format dialogue properly with quotation marks. Use proper grammar and ensure logical consistency. Create clear paragraphs with simple line breaks. Write titles that are intriguing but contain no special characters."
     },
     {
       role: "user",
@@ -94,13 +97,15 @@ const completion = await openai.chat.completions.create({
         },
         {
           type: "text",
-          text: "Please generate a SHORT story (300-500 words maximum) with a simple, easy-to-read title. Use simple language that a middle-school student could easily understand. Avoid complex vocabulary or sentence structures. Make sure your story accurately reflects what's in the image, including the people, setting, clothing, and other visual elements. IMPORTANT FORMATTING: Do NOT use markdown formatting, asterisks (*), or dashes (-) in your text. Use commas, periods, or line breaks instead. Write your title as plain text without any special characters. Format paragraphs with simple line breaks only."
+          text: "Create a SHORT but POWERFUL story (300-500 words) with an intriguing title that will grab the reader's attention. While keeping the language accessible, use vivid descriptions and strong imagery to make your story come alive. Use the image as INSPIRATION rather than a strict template. Identify the key elements in the image (people, setting, objects, mood) but then BUILD BEYOND what's literally shown to create something extraordinary with HIGH STAKES and UNEXPECTED TWISTS. Your story MUST include: 1) A compelling hook that draws readers in immediately, 2) A dramatic escalation of tension or stakes in the middle, 3) A powerful twist or revelation at the end that changes everything. FORMATTING REQUIREMENTS: Use plain text only with NO markdown formatting. NO asterisks or dashes. Use proper quotation marks for dialogue. Ensure perfect grammar and logical consistency throughout. Format paragraphs with simple line breaks. Write your title without special characters."
         }
       ]
     }
   ],
   max_tokens: 1000, // Reduced token limit for shorter stories
-  temperature: 1.5, // Higher temperature for more creative stories
+  temperature: 1.0, // Balanced temperature for creativity with coherence
+  presence_penalty: 0.6, // Encourage the model to introduce new concepts
+  frequency_penalty: 0.3, // Reduce repetition of the same phrases
 });
 ```
 
@@ -191,13 +196,16 @@ To test the OpenAI integration:
 
 ## Recent Improvements
 
-1. **Proper Image Analysis**: Updated the API call format to properly enable GPT-4.1's vision capabilities
-2. **Simplified Stories**: Modified prompts and system instructions to generate shorter, simpler stories (300-500 words)
-3. **Improved Image Relevance**: Added explicit instructions to ensure stories accurately reflect the visual elements in the uploaded images
-4. **Simplified Language**: Instructed the AI to use simpler vocabulary and sentence structures suitable for middle-school reading level
-5. **Plain Text Formatting**: Added explicit instructions to avoid markdown formatting, asterisks, and dashes in the generated stories
-6. **Increased Creativity**: Increased the temperature parameter from 1.0 to 1.5 to generate more creative stories
-7. **Title Formatting**: Added specific instructions to ensure titles are in plain text without special characters
+1. **Complete Prompt Overhaul**: Completely redesigned all prompts to focus on creating intense, mind-blowing stories with high stakes and unexpected twists
+2. **Image as Inspiration**: Changed approach from using images as strict templates to using them as creative inspiration for more imaginative storytelling
+3. **Enhanced Narrative Structure**: Added requirements for compelling hooks, dramatic escalation, and powerful twist endings
+4. **Vivid Language**: Encouraged more evocative descriptions and stronger imagery while keeping language accessible
+5. **Genre-Specific Intensity**: Tailored each genre prompt to emphasize high stakes and emotional impact appropriate to that genre
+6. **Improved Formatting Instructions**: Enhanced formatting guidelines with emphasis on proper dialogue formatting and grammatical consistency
+7. **Advanced Parameter Tuning**: Added presence_penalty (0.6) and frequency_penalty (0.3) to encourage more diverse and creative language
+8. **Enhanced Formatting Requirements**: Strengthened formatting instructions with explicit, repeated warnings to ABSOLUTELY NEVER use dashes or hyphens
+9. **Reduced Temperature**: Adjusted temperature from 1.5 to 1.0 to balance creativity with logical coherence
+10. **First-Person Narration**: Added specific instruction for film noir genre to use first-person narration
 
 ## Future Considerations
 

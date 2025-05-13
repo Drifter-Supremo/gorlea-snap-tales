@@ -101,10 +101,14 @@
 - Using OpenAI GPT-4.1 model (gpt-4.1-2025-04-14) for story generation with image analysis capabilities.
 - OpenAI API key is stored in a separate .env.openai file for security.
 - Properly formatting image input in API requests to enable GPT-4.1's vision capabilities.
-- Using simplified prompts and system instructions to generate shorter, easier-to-read stories.
-- Added explicit formatting instructions to avoid markdown, asterisks, and dashes in generated stories.
-- Increased temperature parameter to 1.5 for more creative story generation.
-- Added specific instructions for plain text formatting in titles and content.
+- Completely overhauled prompts to generate intense, mind-blowing stories with high stakes and unexpected twists.
+- Changed approach to use images as creative inspiration rather than strict templates.
+- Added requirements for compelling hooks, dramatic escalation, and powerful twist endings.
+- Enhanced genre-specific prompts to emphasize intensity and emotional impact.
+- Added presence_penalty (0.6) and frequency_penalty (0.3) parameters for more diverse language.
+- Adjusted temperature to 1.0 to balance creativity with logical coherence.
+- Strengthened formatting requirements with explicit, repeated instructions to ABSOLUTELY NEVER use dashes or hyphens.
+- Improved dialogue formatting instructions and emphasis on grammatical consistency.
 - Documented OpenAI image requirements for optimal story generation:
   - Supported file types: PNG, JPEG, WEBP, non-animated GIF
   - Size limits: Up to 20MB, 512px x 512px (low-res) or 768px x 2000px (high-res)
