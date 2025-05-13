@@ -150,6 +150,29 @@ try {
 }
 ```
 
+## Image Requirements
+
+For optimal story generation, images uploaded to Gorlea Snaps must meet the following requirements:
+
+### Supported File Types
+- PNG (.png)
+- JPEG (.jpeg and .jpg)
+- WEBP (.webp)
+- Non-animated GIF (.gif)
+
+### Size Limits
+- Maximum file size: 20MB per image
+- Low-resolution: 512px x 512px
+- High-resolution: 768px (short side) x 2000px (long side)
+
+### Content Requirements
+- No watermarks or logos
+- No text
+- No NSFW content
+- Clear enough for a human to understand
+
+These requirements are enforced through frontend validation in the ImageUploader component and backend validation in the storyGenerator service.
+
 ## Security Considerations
 
 1. **API Key Security**: The OpenAI API key is stored in environment files (`.env`, `.env.local`, `.env.openai`) that are excluded from version control via `.gitignore`.

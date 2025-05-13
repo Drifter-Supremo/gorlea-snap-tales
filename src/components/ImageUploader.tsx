@@ -61,9 +61,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.heic']
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
     },
-    maxSize: 10485760, // 10MB
+    maxSize: 20971520, // 20MB (OpenAI limit)
     multiple: false,
   });
 
@@ -125,7 +125,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
                 Select Image
               </Button>
               <p className="text-xs text-gorlea-text/50 mt-4 text-center">
-                Supports JPG, PNG, HEIC (Max 10MB)
+                Supports JPG, PNG, WEBP, GIF (Max 20MB)
               </p>
             </div>
           )}

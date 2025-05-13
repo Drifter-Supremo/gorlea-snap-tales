@@ -58,3 +58,7 @@
 - **Response Parsing:** Extract title and content from the AI response with robust parsing logic.
 - **Error Handling:** Implement comprehensive error handling for API calls with user-friendly messages.
 - **Environment Variables:** Store API keys in environment variables for security.
+- **Image Requirements Enforcement:** Validate uploaded images against OpenAI's requirements:
+  - Supported formats: PNG, JPEG, WEBP, non-animated GIF
+  - Size limits: Up to 20MB, dimensions between 512x512px and 768x2000px
+  - Content guidelines: No watermarks, text, or NSFW content

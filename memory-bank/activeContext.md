@@ -38,6 +38,10 @@
   - Changed the badge text in the Logo component
   - Updated all references in the application text
   - Updated page titles and meta descriptions
+- Updated branding from "Gorlea Snaps Stories" to just "Gorlea Snaps":
+  - Moved "Snaps" from the main text to the tilted card
+  - Removed "Stories" from the tilted card
+  - Updated page titles and meta descriptions
 - Enhanced the GenreSelector component with improved UI and interactions:
   - Added tooltips with detailed genre descriptions
   - Implemented hover effects and visual feedback for selected genres
@@ -98,3 +102,13 @@
 - OpenAI API key is stored in a separate .env.openai file for security.
 - Properly formatting image input in API requests to enable GPT-4.1's vision capabilities.
 - Using simplified prompts and system instructions to generate shorter, easier-to-read stories.
+- Documented OpenAI image requirements for optimal story generation:
+  - Supported file types: PNG, JPEG, WEBP, non-animated GIF
+  - Size limits: Up to 20MB, 512px x 512px (low-res) or 768px x 2000px (high-res)
+  - Content requirements: No watermarks/logos, no text, no NSFW, clear enough for human understanding
+- Implemented image requirements in the application:
+  - Created a dedicated image-requirements.md document
+  - Updated ImageUploader component to accept the correct file types and size limits
+  - Enhanced imageUtils.ts to ensure images meet OpenAI's dimension requirements
+  - Added ImageRequirementsTooltip component to inform users about requirements
+  - Integrated the tooltip in the MainPage for better user guidance

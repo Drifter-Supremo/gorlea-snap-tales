@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
 import GenreSelector, { Genre } from "@/components/GenreSelector";
+import ImageRequirementsTooltip from "@/components/ImageRequirementsTooltip";
 import { Loader2, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateStory } from "@/services/storyGenerator";
@@ -121,7 +122,10 @@ const MainPage: React.FC = () => {
           </p>
 
           <div className="mb-8">
-            <h2 className="text-xl font-medium mb-4">1. Upload your photo</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-medium">1. Upload your photo</h2>
+              <ImageRequirementsTooltip />
+            </div>
             <ImageUploader onImageUpload={handleImageUpload} previewUrl={imagePreview} />
           </div>
 
