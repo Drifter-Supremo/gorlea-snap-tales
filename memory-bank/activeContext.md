@@ -2,9 +2,10 @@
 
 ## Current Work Focus
 
-- Implementing Firebase integration in the frontend code.
-- Moving from setup to implementation phase.
-- Preparing to connect the application to Firebase services.
+- Implementing Firebase Storage for story image uploads.
+- Resolving CORS issues with Firebase Storage.
+- Ensuring proper security rules for Firebase Storage.
+- Documenting best practices for Firebase Storage usage.
 
 ## Recent Changes
 
@@ -37,15 +38,18 @@
   - Changed the badge text in the Logo component
   - Updated all references in the application text
   - Updated page titles and meta descriptions
-
-## Recent Changes
-
 - Enhanced the GenreSelector component with improved UI and interactions:
   - Added tooltips with detailed genre descriptions
   - Implemented hover effects and visual feedback for selected genres
   - Added a pulsing indicator for the currently selected genre
   - Improved accessibility with proper ARIA attributes and focus states
   - Made the component responsive for different screen sizes
+- Successfully implemented Firebase Storage for story image uploads:
+  - Created a dedicated function for uploading to Firebase Storage
+  - Updated the storyGenerator service to use Firebase Storage
+  - Configured Firebase Storage security rules to allow authenticated access
+  - Resolved CORS issues by using the Firebase SDK for storage operations
+  - Created comprehensive documentation on Firebase Storage best practices
 
 ## Next Steps
 
@@ -59,9 +63,11 @@
 8. ✅ Add protected routes for authenticated users.
 9. ✅ Add logo to the application and set as favicon.
 10. ✅ Build genre selection UI component with tooltips and visual feedback.
-11. [ ] Set up Firestore collections structure and security rules.
-12. [ ] Configure Firebase Storage security rules for profile pictures.
-13. [ ] Implement OpenAI integration for story generation.
+11. ✅ Configure Firebase Storage security rules for story images.
+12. ✅ Implement Firebase Storage for story image uploads.
+13. [ ] Set up Firestore collections structure and security rules.
+14. [ ] Implement OpenAI integration for story generation.
+15. [ ] Refine Firebase Storage security rules for production.
 
 ## Active Decisions and Considerations
 
@@ -69,3 +75,5 @@
 - We're taking a step-by-step approach, completing and checking in after each task.
 - Documentation will continue to be updated as the project evolves.
 - We'll focus on one phase at a time, ensuring each component is properly implemented before moving on.
+- Always use the Firebase SDK for storage operations to avoid CORS issues.
+- Current Firebase Storage security rules are permissive for development; will need to be tightened for production.

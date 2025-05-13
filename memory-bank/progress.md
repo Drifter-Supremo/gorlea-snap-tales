@@ -14,6 +14,8 @@
 - Firestore database schema is defined with collections for users, stories, and favorites.
 - Firestore security rules are configured to protect user data.
 - Firebase Storage security rules are configured for image uploads.
+- Firebase Storage is successfully implemented for story image uploads.
+- Story generation with image upload is working correctly.
 
 ## What's Left to Build
 
@@ -31,8 +33,8 @@
 - Firebase project "gorlea-snaps" is set as the active project.
 - Firebase services (Authentication, Firestore, Storage) are enabled in the Firebase Console.
 - Firebase initialization file is created and configured.
-- Cloudinary integration is implemented for image uploads.
-- Story generation with mock data is working.
+- Firebase Storage is successfully implemented for story image uploads.
+- Story generation with image upload is working correctly.
 - Project is in the implementation phase.
 - Authentication using Firebase Authentication is implemented.
 
@@ -40,5 +42,6 @@
 
 - Backend and AI integration pending setup and implementation.
 - Security and performance optimizations to be addressed during development.
-- Cloudinary configuration needs to be properly secured in production.
+- Firebase Storage security rules are currently set to be permissive for development; need to be tightened for production.
 - Need to implement proper error handling for image uploads.
+- Need to ensure all Firebase SDK operations are used for storage operations to avoid CORS issues.

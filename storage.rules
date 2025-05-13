@@ -1,23 +1,10 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow access to profile pictures in the users directory
-    match /users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Allow access to story images in the stories directory
-    match /stories/{userId}/{allPaths=**} {
-      // Users can write to their own stories folder
-      allow write: if request.auth != null && request.auth.uid == userId;
-
-      // Anyone can read story images (for sharing stories)
-      allow read: if request.auth != null;
-    }
-
-    // Deny all other access
+    // For testing purposes - allow all access
+    // WARNING: This is not secure for production
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
   }
 }
