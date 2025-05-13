@@ -102,6 +102,9 @@
 - OpenAI API key is stored in a separate .env.openai file for security.
 - Properly formatting image input in API requests to enable GPT-4.1's vision capabilities.
 - Using simplified prompts and system instructions to generate shorter, easier-to-read stories.
+- Added explicit formatting instructions to avoid markdown, asterisks, and dashes in generated stories.
+- Increased temperature parameter to 1.5 for more creative story generation.
+- Added specific instructions for plain text formatting in titles and content.
 - Documented OpenAI image requirements for optimal story generation:
   - Supported file types: PNG, JPEG, WEBP, non-animated GIF
   - Size limits: Up to 20MB, 512px x 512px (low-res) or 768px x 2000px (high-res)
