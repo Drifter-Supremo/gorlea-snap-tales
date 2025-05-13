@@ -120,3 +120,4 @@
   - Enhanced imageUtils.ts to ensure images meet OpenAI's dimension requirements
   - Added ImageRequirementsTooltip component to inform users about requirements
   - Integrated the tooltip in the MainPage for better user guidance
+  - Improved ImageRequirementsTooltip to work on mobile and tablet devices (screens below 1024px) with tap-to-show functionality
