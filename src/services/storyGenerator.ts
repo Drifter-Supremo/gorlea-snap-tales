@@ -101,8 +101,8 @@ export const generateStory = async (
       title = defaultTitles[genre];
     }
 
-    // Create the story object
-    const story = saveNewStory({
+    // Create the story object (async)
+    const story = await saveNewStory({
       title,
       content,
       genre,

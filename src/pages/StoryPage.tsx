@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStoryById, Story } from "@/data/storiesData";
 import { Genre } from "@/components/GenreSelector";
+import { addToFavorites, removeFromFavorites, checkIfFavorite } from "@/data/favoritesData";
 
 const genreLabels: Record<Genre, string> = {
   "rom-com": "Romantic Comedy",
@@ -26,53 +27,91 @@ const StoryPage: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!id) {
-      navigate("/app");
-      return;
-    }
+    const fetchStoryAndFavoriteStatus = async () => {
+      if (!id || !user) {
+        navigate("/app");
+        return;
+      }
 
-    // Fetch the story data
-    const fetchedStory = getStoryById(id);
-    if (fetchedStory) {
-      setStory(fetchedStory);
-      
-      // Check if the story is in favorites
-      const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-      setIsFavorite(favorites.includes(id));
-    } else {
+      try {
+        // Fetch the story data (async)
+        const fetchedStory = await getStoryById(id);
+        if (fetchedStory) {
+          setStory(fetchedStory);
+
+          try {
+            // Check if the story is in favorites using Firestore
+            const isFav = await checkIfFavorite(user.uid, id);
+            setIsFavorite(isFav);
+          } catch (error) {
+            console.error("Error checking favorite status:", error);
+            // Fallback to localStorage if Firestore fails
+            const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+            setIsFavorite(favorites.includes(id));
+          }
+        } else {
+          toast({
+            title: "Story not found",
+            description: "The requested story could not be found.",
+            variant: "destructive",
+          });
+          navigate("/app");
+        }
+      } catch (error) {
+        console.error("Error fetching story:", error);
+        toast({
+          title: "Error loading story",
+          description: "There was a problem loading the story. Please try again.",
+          variant: "destructive",
+        });
+        navigate("/app");
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchStoryAndFavoriteStatus();
+  }, [id, navigate, toast, user]);
+
+  const toggleFavorite = async () => {
+    if (!story || !user || !id) return;
+
+    try {
+      if (isFavorite) {
+        // Remove from favorites in Firestore
+        await removeFromFavorites(user.uid, id);
+
+        // Also update localStorage for backward compatibility
+        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+        const updatedFavorites = favorites.filter((favoriteId: string) => favoriteId !== id);
+        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+
+        setIsFavorite(false);
+        toast({
+          title: "Removed from favorites",
+          description: "Story has been removed from your favorites.",
+        });
+      } else {
+        // Add to favorites in Firestore
+        await addToFavorites(user.uid, id);
+
+        // Also update localStorage for backward compatibility
+        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+        favorites.push(id);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+
+        setIsFavorite(true);
+        toast({
+          title: "Added to favorites",
+          description: "Story has been added to your favorites.",
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
       toast({
-        title: "Story not found",
-        description: "The requested story could not be found.",
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
         variant: "destructive",
-      });
-      navigate("/app");
-    }
-
-    setIsLoading(false);
-  }, [id, navigate, toast]);
-
-  const toggleFavorite = () => {
-    if (!story) return;
-
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    
-    if (isFavorite) {
-      // Remove from favorites
-      const updatedFavorites = favorites.filter((favoriteId: string) => favoriteId !== id);
-      localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-      setIsFavorite(false);
-      toast({
-        title: "Removed from favorites",
-        description: "Story has been removed from your favorites.",
-      });
-    } else {
-      // Add to favorites
-      favorites.push(id);
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-      setIsFavorite(true);
-      toast({
-        title: "Added to favorites",
-        description: "Story has been added to your favorites.",
       });
     }
   };
@@ -177,7 +216,7 @@ const StoryPage: React.FC = () => {
                   </>
                 )}
               </Button>
-              
+
               <Button
                 variant="outline"
                 className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
@@ -207,7 +246,7 @@ const StoryPage: React.FC = () => {
                 variant="outline"
                 className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
               >
-                View My Stories
+                View Favorites
               </Button>
             </Link>
           </div>

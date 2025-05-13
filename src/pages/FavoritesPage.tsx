@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getStoryById, Story } from "@/data/storiesData";
 import { Input } from "@/components/ui/input";
 import { Genre } from "@/components/GenreSelector";
+import { getUserFavorites, removeFromFavorites } from "@/data/favoritesData";
 
 const genreLabels: Record<Genre, string> = {
   "rom-com": "Romantic Comedy",
@@ -27,15 +28,64 @@ const FavoritesPage: React.FC = () => {
 
   useEffect(() => {
     // Load favorite stories
-    const loadFavorites = () => {
-      const favoriteIds = JSON.parse(localStorage.getItem("favorites") || "[]");
-      const stories = favoriteIds.map((id: string) => getStoryById(id)).filter(Boolean);
-      setFavoriteStories(stories);
+    const loadFavorites = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Get favorite story IDs from Firestore
+        const favoriteIds = await getUserFavorites(user.uid);
+
+        // Fallback to localStorage if no Firestore favorites found
+        if (favoriteIds.length === 0) {
+          const localFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+          // If we have localStorage favorites but no Firestore favorites,
+          // we could migrate them to Firestore here in a future update
+
+          // Get story details for each favorite ID (async)
+          const storyPromises = localFavorites.map((id: string) => getStoryById(id));
+          const storyResults = await Promise.all(storyPromises);
+          const stories = storyResults.filter(Boolean) as Story[];
+          setFavoriteStories(stories);
+        } else {
+          // Get story details for each favorite ID (async)
+          const storyPromises = favoriteIds.map((id: string) => getStoryById(id));
+          const storyResults = await Promise.all(storyPromises);
+          const stories = storyResults.filter(Boolean) as Story[];
+          setFavoriteStories(stories);
+        }
+      } catch (error) {
+        console.error("Error loading favorites:", error);
+
+        // Fallback to localStorage if Firestore fails
+        const localFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+        try {
+          // Get story details for each favorite ID (async)
+          const storyPromises = localFavorites.map((id: string) => getStoryById(id));
+          const storyResults = await Promise.all(storyPromises);
+          const stories = storyResults.filter(Boolean) as Story[];
+          setFavoriteStories(stories);
+        } catch (err) {
+          console.error("Error loading stories from localStorage:", err);
+          setFavoriteStories([]);
+        }
+
+        toast({
+          title: "Error loading favorites",
+          description: "There was a problem loading your favorites. Some stories may not be displayed.",
+          variant: "destructive",
+        });
+      }
+
       setIsLoading(false);
     };
 
     loadFavorites();
-  }, []);
+  }, [user, toast]);
 
   // Filter stories based on search term
   const filteredStories = favoriteStories.filter(story => {
@@ -45,17 +95,33 @@ const FavoritesPage: React.FC = () => {
     );
   });
 
-  const handleRemoveFavorite = (storyId: string) => {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const updatedFavorites = favorites.filter((id: string) => id !== storyId);
-    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+  const handleRemoveFavorite = async (storyId: string) => {
+    if (!user) return;
 
-    setFavoriteStories(prev => prev.filter(story => story.id !== storyId));
+    try {
+      // Remove from Firestore
+      await removeFromFavorites(user.uid, storyId);
 
-    toast({
-      title: "Removed from favorites",
-      description: "Story has been removed from your favorites.",
-    });
+      // Also update localStorage for backward compatibility
+      const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+      const updatedFavorites = favorites.filter((id: string) => id !== storyId);
+      localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+
+      // Update UI
+      setFavoriteStories(prev => prev.filter(story => story.id !== storyId));
+
+      toast({
+        title: "Removed from favorites",
+        description: "Story has been removed from your favorites.",
+      });
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove from favorites. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -89,7 +155,7 @@ const FavoritesPage: React.FC = () => {
             </Button>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-serif font-bold mb-2">My Stories</h1>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold mb-2">Favorites</h1>
           <p className="mb-6 text-gorlea-text/80">
             Your saved AI-generated stories
           </p>

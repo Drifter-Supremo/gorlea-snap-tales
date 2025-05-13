@@ -52,7 +52,7 @@ const NavigationDrawer = () => {
           <Link to="/favorites">
             <Button variant="ghost" className="w-full justify-start text-gorlea-text hover:bg-gorlea-tertiary hover:text-gorlea-text">
               <HeartIcon className="mr-2 h-5 w-5" />
-              My Stories
+              Favorites
             </Button>
           </Link>
         </div>
