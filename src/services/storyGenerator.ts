@@ -1,7 +1,7 @@
 
 import { Genre } from "@/components/GenreSelector";
 import { saveNewStory } from "@/data/storiesData";
-import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
+import { uploadToFirebaseStorage } from "@/lib/uploadToFirebaseStorage";
 
 // Mock story generation - In a real app, this would call an AI API
 export const generateStory = async (
@@ -27,9 +27,9 @@ export const generateStory = async (
     console.log(`Image file: ${imageFile.name}, size: ${imageFile.size}, type: ${imageFile.type}`);
     console.log(`Genre: ${genre}, User ID: ${userId}`);
 
-    // Upload image to Cloudinary
-    console.log("Uploading image to Cloudinary...");
-    const imageUrl = await uploadToCloudinary(imageFile, userId);
+    // Upload image to Firebase Storage
+    console.log("Uploading image to Firebase Storage...");
+    const imageUrl = await uploadToFirebaseStorage(imageFile, userId);
     console.log("Image uploaded successfully:", imageUrl);
 
     // Simulate API delay for story generation
@@ -261,10 +261,10 @@ export const generateStory = async (
     console.error("Error generating story:", error);
 
     // Provide more specific error messages based on the error
-    if (error.message && error.message.includes("Cloudinary")) {
-      console.error("Cloudinary upload error details:", error);
+    if (error.message && error.message.includes("Firebase Storage")) {
+      console.error("Firebase Storage upload error details:", error);
       throw new Error(`Image upload failed: ${error.message}`);
-    } else if (error.message && error.message.includes("No image file")) {
+    } else if (error.message && error.message.includes("No image file") || error.message.includes("No valid file")) {
       throw new Error("Please upload an image to generate a story");
     } else if (error.message && error.message.includes("No genre")) {
       throw new Error("Please select a genre to generate a story");
