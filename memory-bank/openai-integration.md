@@ -62,32 +62,45 @@ The story generation process now follows these steps:
 
 ### Genre-Specific Prompts
 
-We've created genre-specific prompts to guide the AI in generating stories that match the selected genre:
+We've created simplified genre-specific prompts to guide the AI in generating shorter, simpler stories that match the selected genre:
 
-- **Rom-Com**: "Write a romantic comedy short story based on this image. The story should be heartwarming, humorous, and have a happy ending. Include vivid descriptions, engaging dialogue, and a charming meet-cute scenario."
-- **Horror**: "Write a horror short story based on this image. The story should be suspenseful, eerie, and unsettling. Include atmospheric descriptions, a sense of dread, and an unexpected twist ending."
-- **Sci-Fi**: "Write a science fiction short story based on this image. The story should include futuristic technology, thought-provoking concepts, and a sense of wonder. Focus on creative world-building and an intriguing premise."
-- **Film-Noir**: "Write a film noir style detective story based on this image. The story should have a gritty, cynical tone, morally ambiguous characters, and a mysterious plot. Include atmospheric descriptions of urban settings and hard-boiled dialogue."
+- **Rom-Com**: "Write a short, simple romantic comedy story based on this image. The story should be fun, sweet, and have a happy ending. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see."
+- **Horror**: "Write a short, simple scary story based on this image. The story should be spooky but not too frightening. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see."
+- **Sci-Fi**: "Write a short, simple science fiction story based on this image. The story should be about future technology, space, or something imaginary. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see."
+- **Film-Noir**: "Write a short, simple detective story based on this image. The story should have a mystery to solve. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see."
 
-### OpenAI API Call
+### OpenAI API Call with Image Analysis
 
-The OpenAI API is called with the following parameters:
+The OpenAI API is called with the following parameters, properly formatted to enable image analysis:
 
 ```typescript
 const completion = await openai.chat.completions.create({
-  model: "gpt-4.1-2025-04-14", // Using the latest GPT-4.1 model
+  model: "gpt-4.1-2025-04-14", // Using the latest GPT-4.1 model with vision capabilities
   messages: [
     {
       role: "system",
-      content: "You are a creative storyteller who specializes in writing engaging short stories in various genres. Your stories should be approximately 1000-1500 words, with vivid descriptions, compelling characters, and satisfying plots."
+      content: "You are Gorlea, a creative storyteller who specializes in writing engaging short stories in various genres. Your stories should be SHORT (300-500 words maximum), with simple language that's easy to read and understand. Use everyday vocabulary and short sentences. Avoid complex words, technical jargon, or overly flowery descriptions."
     },
     {
       role: "user",
-      content: `${genrePrompts[genre]} The image URL is: ${imageUrl}. Please also generate an appropriate title for the story.`
+      content: [
+        { type: "text", text: genrePrompts[genre] },
+        {
+          type: "image_url",
+          image_url: {
+            url: imageUrl,
+            detail: "high" // Request high detail analysis
+          }
+        },
+        {
+          type: "text",
+          text: "Please generate a SHORT story (300-500 words maximum) with a simple, easy-to-read title. Use simple language that a middle-school student could easily understand. Make sure your story accurately reflects what's in the image, including the people, setting, clothing, and other visual elements."
+        }
+      ]
     }
   ],
-  max_tokens: 2000,
-  temperature: 1.5, // High temperature for maximum creativity and diversity
+  max_tokens: 1000, // Reduced token limit for shorter stories
+  temperature: 1.0, // Slightly lower temperature for more coherent output
 });
 ```
 
@@ -153,10 +166,17 @@ To test the OpenAI integration:
 3. Check that the story has an appropriate title and content
 4. Test with different images and genres to ensure variety in the generated stories
 
+## Recent Improvements
+
+1. **Proper Image Analysis**: Updated the API call format to properly enable GPT-4.1's vision capabilities
+2. **Simplified Stories**: Modified prompts and system instructions to generate shorter, simpler stories (300-500 words)
+3. **Improved Image Relevance**: Added explicit instructions to ensure stories accurately reflect the visual elements in the uploaded images
+4. **Simplified Language**: Instructed the AI to use simpler vocabulary and sentence structures suitable for middle-school reading level
+
 ## Future Considerations
 
-1. **Image Analysis**: Enhance the prompts to include more specific details about the image content
-2. **User Preferences**: Allow users to customize the story generation with additional parameters
-3. **Caching**: Implement caching to avoid regenerating stories for the same image and genre
-4. **Fallback Mechanism**: Create a fallback to pre-written stories if the OpenAI API is unavailable
-5. **Content Moderation**: Add content moderation to ensure appropriate stories
+1. **User Preferences**: Allow users to customize the story generation with additional parameters (e.g., story length, complexity level)
+2. **Caching**: Implement caching to avoid regenerating stories for the same image and genre
+3. **Fallback Mechanism**: Create a fallback to pre-written stories if the OpenAI API is unavailable
+4. **Content Moderation**: Add content moderation to ensure appropriate stories
+5. **Performance Optimization**: Monitor and optimize token usage for cost efficiency

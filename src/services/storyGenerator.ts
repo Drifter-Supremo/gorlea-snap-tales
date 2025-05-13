@@ -37,30 +37,43 @@ export const generateStory = async (
 
     // Create genre-specific prompts
     const genrePrompts = {
-      "rom-com": "Write a romantic comedy short story based on this image. The story should be heartwarming, humorous, and have a happy ending. Include vivid descriptions, engaging dialogue, and a charming meet-cute scenario. Carefully analyze what's in the image - whether it shows people (one or multiple), animals, objects, landscapes, or fictional characters. Base your story directly on what you see, adapting your approach to the specific content. If there are people, use their apparent emotions, clothing, and setting. If it's a landscape or object, create characters that would naturally interact with that setting or item. Stay closely connected to the visual elements in the image so the reader can clearly see the connection between the story and the picture.",
+      "rom-com": "Write a short, simple romantic comedy story based on this image. The story should be fun, sweet, and have a happy ending. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see. If there are people, use how they look and where they are. If it's a place or object, create simple characters that would be there. Make sure your story clearly connects to the image so readers can see how they relate.",
 
-      "horror": "Write a horror short story based on this image. The story should be suspenseful, eerie, and unsettling. Include atmospheric descriptions, a sense of dread, and an unexpected twist ending. Carefully analyze what's in the image - whether it shows people (one or multiple), animals, objects, landscapes, or fictional characters. Base your story directly on what you see, adapting your approach to the specific content. If there are people, use their apparent emotions, clothing, and setting to build tension. If it's a landscape or object, transform ordinary elements into something sinister. Stay closely connected to the visual elements in the image so the reader can clearly see the connection between the story and the picture.",
+      "horror": "Write a short, simple scary story based on this image. The story should be spooky but not too frightening. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see. If there are people, use how they look and where they are to create tension. If it's a place or object, make it seem a little creepy. Make sure your story clearly connects to the image so readers can see how they relate.",
 
-      "sci-fi": "Write a science fiction short story based on this image. The story should include futuristic technology, thought-provoking concepts, and a sense of wonder. Focus on creative world-building and an intriguing premise. Carefully analyze what's in the image - whether it shows people (one or multiple), animals, objects, landscapes, or fictional characters. Base your story directly on what you see, adapting your approach to the specific content. If there are people, imagine how they might interact with future technology or extraordinary circumstances. If it's a landscape or object, envision how it might exist or function in a futuristic world. Stay closely connected to the visual elements in the image so the reader can clearly see the connection between the story and the picture.",
+      "sci-fi": "Write a short, simple science fiction story based on this image. The story should be about future technology, space, or something imaginary. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see. If there are people, think about how they might use cool future technology. If it's a place or object, imagine it in the future. Make sure your story clearly connects to the image so readers can see how they relate.",
 
-      "film-noir": "Write a film noir style detective story based on this image. The story should have a gritty, cynical tone, morally ambiguous characters, and a mysterious plot. Include atmospheric descriptions of urban settings and hard-boiled dialogue. Carefully analyze what's in the image - whether it shows people (one or multiple), animals, objects, landscapes, or fictional characters. Base your story directly on what you see, adapting your approach to the specific content. If there are people, use their apparent emotions, clothing, and setting to develop character and motive. If it's a landscape or object, make it a crucial element in the mystery. Stay closely connected to the visual elements in the image so the reader can clearly see the connection between the story and the picture."
+      "film-noir": "Write a short, simple detective story based on this image. The story should have a mystery to solve. Look carefully at what's in the image - people, animals, places, or things. Base your story directly on what you see. If there are people, think about what secrets they might have. If it's a place or object, make it an important clue. Make sure your story clearly connects to the image so readers can see how they relate."
     };
 
-    // Generate the story using OpenAI
+    // Generate the story using OpenAI with proper image input formatting
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-2025-04-14", // Using the latest GPT-4.1 model
       messages: [
         {
           role: "system",
-          content: "You are Gorlea, a creative storyteller who specializes in writing engaging short stories in various genres. Your stories should be approximately 1000-1500 words, with vivid descriptions, compelling characters, and satisfying plots. You have a unique ability to analyze images and create stories that directly connect to what's shown in the picture. You adapt your approach based on whether the image contains people, animals, objects, landscapes, or fictional characters. You always ensure your story remains closely tied to the visual elements in the image so readers can clearly see the connection between your story and the picture they uploaded."
+          content: "You are Gorlea, a creative storyteller who specializes in writing engaging short stories in various genres. Your stories should be SHORT (300-500 words maximum), with simple language that's easy to read and understand. Use everyday vocabulary and short sentences. Avoid complex words, technical jargon, or overly flowery descriptions. Your stories should have a clear beginning, middle, and end with a simple plot. You have a unique ability to analyze images and create stories that directly connect to what's shown in the picture. You adapt your approach based on whether the image contains people, animals, objects, landscapes, or fictional characters. You always ensure your story remains closely tied to the visual elements in the image so readers can clearly see the connection between your story and the picture they uploaded. IMPORTANT: Keep your response in plain text format only - do not use markdown formatting, special characters, or any non-English text."
         },
         {
           role: "user",
-          content: `${genrePrompts[genre]} The image URL is: ${imageUrl}. Please also generate an appropriate title for the story.`
+          content: [
+            { type: "text", text: genrePrompts[genre] },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl,
+                detail: "high" // Request high detail analysis
+              }
+            },
+            {
+              type: "text",
+              text: "Please generate a SHORT story (300-500 words maximum) with a simple, easy-to-read title. Use simple language that a middle-school student could easily understand. Avoid complex vocabulary or sentence structures. Make sure your story accurately reflects what's in the image, including the people, setting, clothing, and other visual elements."
+            }
+          ]
         }
       ],
-      max_tokens: 2000,
-      temperature: 1.5, // High temperature for maximum creativity and diversity
+      max_tokens: 1000, // Reduced token limit for shorter stories
+      temperature: 1.0, // Slightly lower temperature for more coherent output
     });
 
     // Extract the story content and title from the response

@@ -2,10 +2,10 @@
 
 ## Current Work Focus
 
-- Implementing OpenAI GPT-4.1 integration for story generation.
-- Creating genre-specific prompts for AI story generation.
-- Ensuring proper handling of API responses and error cases.
-- Securing the OpenAI API key in environment variables.
+- Enhancing OpenAI GPT-4.1 integration with proper image analysis capabilities.
+- Simplifying genre-specific prompts for shorter, easier-to-read stories.
+- Ensuring stories accurately reflect the visual elements in uploaded images.
+- Optimizing token usage and monitoring API costs.
 
 ## Recent Changes
 
@@ -56,6 +56,9 @@
   - Implemented genre-specific prompts for AI story generation
   - Added proper error handling for API calls
   - Created comprehensive documentation on OpenAI integration
+  - Enhanced image analysis capabilities by properly formatting API requests
+  - Simplified prompts to generate shorter, easier-to-read stories
+  - Added explicit instructions to ensure stories accurately reflect image content
 
 ## Next Steps
 
@@ -84,5 +87,7 @@
 - We'll focus on one phase at a time, ensuring each component is properly implemented before moving on.
 - Always use the Firebase SDK for storage operations to avoid CORS issues.
 - Current Firebase Storage security rules are permissive for development; will need to be tightened for production.
-- Using OpenAI GPT-4.1 model (gpt-4.1-2025-04-14) for story generation.
+- Using OpenAI GPT-4.1 model (gpt-4.1-2025-04-14) for story generation with image analysis capabilities.
 - OpenAI API key is stored in a separate .env.openai file for security.
+- Properly formatting image input in API requests to enable GPT-4.1's vision capabilities.
+- Using simplified prompts and system instructions to generate shorter, easier-to-read stories.
