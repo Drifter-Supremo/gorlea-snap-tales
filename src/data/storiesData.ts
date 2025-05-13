@@ -1,6 +1,7 @@
 
-import { collection, doc, getDoc, getDocs, addDoc, query, where, orderBy, Timestamp, DocumentData } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, doc, getDoc, getDocs, addDoc, query, where, orderBy, Timestamp, DocumentData, deleteDoc } from "firebase/firestore";
+import { db, storage } from "@/lib/firebase";
+import { ref, deleteObject } from "firebase/storage";
 
 export interface Story {
   id: string;
@@ -290,5 +291,51 @@ export const saveNewStory = async (story: Omit<Story, 'id' | 'createdAt'>): Prom
 
     mockStories.push(newStory);
     return newStory;
+  }
+};
+
+/**
+ * Deletes a story and its associated image from Firestore and Firebase Storage
+ *
+ * @param storyId - The ID of the story to delete
+ * @returns A Promise that resolves when the story is deleted
+ */
+export const deleteStory = async (storyId: string): Promise<void> => {
+  try {
+    // Get the story to retrieve the image URL
+    const story = await getStoryById(storyId);
+
+    if (!story) {
+      console.warn(`Story with ID ${storyId} not found, nothing to delete`);
+      return;
+    }
+
+    // Delete the story document from Firestore
+    await deleteDoc(doc(db, "stories", storyId));
+
+    // Remove from cache
+    storyCache.delete(storyId);
+
+    // Delete the associated image from Firebase Storage if it's a Firebase Storage URL
+    if (story.imageUrl && story.imageUrl.includes('firebasestorage')) {
+      try {
+        // Extract the path from the URL
+        // The URL format is typically like:
+        // https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?token=[token]
+        const urlPath = decodeURIComponent(story.imageUrl.split('/o/')[1].split('?')[0]);
+        const storageRef = ref(storage, urlPath);
+
+        await deleteObject(storageRef);
+        console.log(`Deleted image at ${urlPath} from Firebase Storage`);
+      } catch (imageError) {
+        console.error("Error deleting image from Firebase Storage:", imageError);
+        // Continue with the function even if image deletion fails
+      }
+    }
+
+    console.log(`Successfully deleted story with ID ${storyId}`);
+  } catch (error) {
+    console.error("Error deleting story:", error);
+    throw new Error(`Failed to delete story: ${error.message}`);
   }
 };

@@ -79,7 +79,7 @@ const StoryPage: React.FC = () => {
     try {
       if (isFavorite) {
         // Remove from favorites in Firestore
-        await removeFromFavorites(user.uid, id);
+        await removeFromFavorites(user.uid, id, true); // Pass true to also delete the story and image
 
         // Also update localStorage for backward compatibility
         const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -89,8 +89,11 @@ const StoryPage: React.FC = () => {
         setIsFavorite(false);
         toast({
           title: "Removed from favorites",
-          description: "Story has been removed from your favorites.",
+          description: "Story has been removed from your favorites and deleted to free up space.",
         });
+
+        // Navigate back to the main page since the story has been deleted
+        navigate("/app");
       } else {
         // Add to favorites in Firestore
         await addToFavorites(user.uid, id);

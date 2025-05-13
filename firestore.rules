@@ -65,36 +65,32 @@ service cloud.firestore {
 
     // Stories collection rules
     match /stories/{storyId} {
-      // Allow read if the story is public or if the user is the owner
-      allow read: if resource.data.isPublic == true || isOwner(resource.data.userId);
+      // Allow read for all authenticated users
+      allow read: if isAuthenticated();
 
       // Allow create if the user is authenticated, is setting themselves as the owner, and the data is valid
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidStoryData();
 
       // Allow update if the user is the owner and the data is valid
-      allow update: if isOwner(resource.data.userId) && isValidStoryData();
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
 
       // Allow delete if the user is the owner
-      allow delete: if isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
     // Favorites collection rules
     match /favorites/{favoriteId} {
-      // Allow read if the user is authenticated and is the owner of the favorite
-      allow get: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      // Allow read if the user is authenticated
+      allow get: if isAuthenticated();
 
-      // Allow querying favorites by userId
-      allow list: if isAuthenticated() &&
-                   request.query.limit <= 100 &&
-                   request.query.filters[0].fieldPath == "userId" &&
-                   request.query.filters[0].op == "==" &&
-                   request.query.filters[0].value == request.auth.uid;
+      // Allow listing all favorites for authenticated users
+      allow list: if isAuthenticated();
 
       // Allow create if the user is authenticated and is setting themselves as the owner
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
 
-      // Allow delete if the user is the owner
-      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      // Allow delete if the user is authenticated
+      allow delete: if isAuthenticated();
     }
   }
 }

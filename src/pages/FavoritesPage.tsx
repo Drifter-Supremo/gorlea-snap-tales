@@ -99,8 +99,8 @@ const FavoritesPage: React.FC = () => {
     if (!user) return;
 
     try {
-      // Remove from Firestore
-      await removeFromFavorites(user.uid, storyId);
+      // Remove from Firestore and delete the story and its image
+      await removeFromFavorites(user.uid, storyId, true);
 
       // Also update localStorage for backward compatibility
       const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -112,7 +112,7 @@ const FavoritesPage: React.FC = () => {
 
       toast({
         title: "Removed from favorites",
-        description: "Story has been removed from your favorites.",
+        description: "Story has been removed from your favorites and deleted to free up space.",
       });
     } catch (error) {
       console.error("Error removing favorite:", error);
