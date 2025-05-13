@@ -98,9 +98,9 @@
 - We'll focus on one phase at a time, ensuring each component is properly implemented before moving on.
 - Always use the Firebase SDK for storage operations to avoid CORS issues.
 - Current Firebase Storage security rules are permissive for development; will need to be tightened for production.
-- Using OpenAI GPT-4.1 model (gpt-4.1-2025-04-14) for story generation with image analysis capabilities.
-- OpenAI API key is stored in a separate .env.openai file for security.
-- Properly formatting image input in API requests to enable GPT-4.1's vision capabilities.
+- Using Claude 3.7 Sonnet model (claude-3-7-sonnet-20240620) for story generation with image analysis capabilities.
+- Claude API key is stored in a separate .env.claude file for security.
+- Properly formatting image input in API requests to enable Claude's vision capabilities.
 - Completely overhauled prompts to generate intense, mind-blowing stories with high stakes and unexpected twists.
 - Changed approach to use images as creative inspiration rather than strict templates.
 - Added requirements for compelling hooks, dramatic escalation, and powerful twist endings.
@@ -109,7 +109,8 @@
 - Adjusted temperature to 1.0 to balance creativity with logical coherence.
 - Strengthened formatting requirements with explicit, repeated instructions to ABSOLUTELY NEVER use dashes or hyphens.
 - Improved dialogue formatting instructions and emphasis on grammatical consistency.
-- Documented OpenAI image requirements for optimal story generation:
+- Switched from OpenAI GPT-4.1 to Claude 3.7 Sonnet for better creative writing, narrative coherence, and instruction following.
+- Documented image requirements for optimal story generation with Claude:
   - Supported file types: PNG, JPEG, WEBP, non-animated GIF
   - Size limits: Up to 20MB, 512px x 512px (low-res) or 768px x 2000px (high-res)
   - Content requirements: No watermarks/logos, no text, no NSFW, clear enough for human understanding
