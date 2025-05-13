@@ -40,9 +40,10 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Set up Firestore Database
   - [x] Create initial collections structure (users, stories)
   - [x] Configure security rules
-- [x] Configure Firebase Storage
-  - [x] Set up storage bucket for images
-  - [x] Configure security rules for storage
+- [x] Configure Storage Solutions
+  - [x] Set up Firebase Storage bucket for profile pictures
+  - [x] Configure Firebase Storage security rules
+  - [x] Set up Cloudinary for story image uploads
 
 ## Phase 2: Frontend Configuration
 
@@ -85,7 +86,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Add logo to the header
 - [x] Set logo as favicon
 - [x] Update branding from "AI Stories" to "Stories"
-- [ ] Ensure consistent brand colors across components
+- [x] Ensure consistent brand colors across components
 
 ## Phase 3: Core Functionality
 
@@ -97,10 +98,10 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Implement Cloudinary upload function (replaced Firebase Storage)
 
 ### 3.2 Genre Selection
-- [ ] Build genre selection UI component
-- [ ] Create state management for genre selection
-- [ ] Add visual feedback for selected genre
-- [ ] Implement genre descriptions/tooltips
+- [x] Build genre selection UI component
+- [x] Create state management for genre selection
+- [x] Add visual feedback for selected genre
+- [x] Implement genre descriptions/tooltips
 
 ### 3.3 OpenAI Integration
 - [ ] Create backend API route for OpenAI: `src/app/api/generate-story/route.ts`

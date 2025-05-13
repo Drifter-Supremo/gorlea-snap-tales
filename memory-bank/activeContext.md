@@ -38,6 +38,15 @@
   - Updated all references in the application text
   - Updated page titles and meta descriptions
 
+## Recent Changes
+
+- Enhanced the GenreSelector component with improved UI and interactions:
+  - Added tooltips with detailed genre descriptions
+  - Implemented hover effects and visual feedback for selected genres
+  - Added a pulsing indicator for the currently selected genre
+  - Improved accessibility with proper ARIA attributes and focus states
+  - Made the component responsive for different screen sizes
+
 ## Next Steps
 
 1. ✅ Implement real authentication using Firebase Authentication.
@@ -49,8 +58,10 @@
 7. ✅ Remove guest access mode.
 8. ✅ Add protected routes for authenticated users.
 9. ✅ Add logo to the application and set as favicon.
-10. [ ] Set up Firestore collections structure and security rules.
-11. [ ] Configure Firebase Storage security rules.
+10. ✅ Build genre selection UI component with tooltips and visual feedback.
+11. [ ] Set up Firestore collections structure and security rules.
+12. [ ] Configure Firebase Storage security rules for profile pictures.
+13. [ ] Implement OpenAI integration for story generation.
 
 ## Active Decisions and Considerations
 

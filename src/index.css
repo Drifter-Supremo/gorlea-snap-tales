@@ -89,17 +89,34 @@
   }
 
   .genre-button {
-    @apply flex flex-col items-center justify-center p-4 rounded-lg transition-all duration-300 bg-gorlea-secondary hover:bg-gorlea-tertiary border-2 border-transparent;
+    @apply flex flex-col items-center justify-center p-4 rounded-lg transition-all duration-300 bg-gorlea-secondary hover:bg-gorlea-tertiary border-2 border-transparent relative overflow-hidden;
   }
-  
+
   .genre-button.active {
-    @apply border-gorlea-accent;
+    @apply border-gorlea-accent bg-gorlea-tertiary shadow-md;
   }
-  
+
+  .genre-button.hover-active {
+    @apply border-gorlea-accent/50;
+  }
+
+  .genre-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gorlea-accent/0 transition-opacity duration-300 opacity-0 pointer-events-none;
+  }
+
+  .genre-button.active::before {
+    @apply opacity-10;
+  }
+
+  .genre-button:focus-visible {
+    @apply outline-none ring-2 ring-gorlea-accent ring-offset-2 ring-offset-gorlea-background;
+  }
+
   .dropzone {
     @apply border-2 border-dashed border-gorlea-tertiary bg-gorlea-secondary rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-gorlea-accent;
   }
-  
+
   .dropzone.active {
     @apply border-gorlea-accent bg-opacity-70;
   }
@@ -107,10 +124,10 @@
 
 /* Custom animations */
 .bg-pattern {
-  background-image: 
-    linear-gradient(45deg, rgba(5, 92, 115, 0.1) 25%, transparent 25%), 
-    linear-gradient(-45deg, rgba(5, 92, 115, 0.1) 25%, transparent 25%), 
-    linear-gradient(45deg, transparent 75%, rgba(5, 92, 115, 0.1) 75%), 
+  background-image:
+    linear-gradient(45deg, rgba(5, 92, 115, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(5, 92, 115, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(5, 92, 115, 0.1) 75%),
     linear-gradient(-45deg, transparent 75%, rgba(5, 92, 115, 0.1) 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;

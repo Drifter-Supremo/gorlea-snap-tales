@@ -26,16 +26,16 @@ const NavigationDrawer = () => {
 
         <div className="flex flex-col space-y-4 mb-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-gorlea-accent">
+            <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-gorlea-accent flex-shrink-0">
               <img
                 src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
                 alt="Profile"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover object-center"
               />
             </div>
-            <div>
-              <h3 className="font-medium">{user?.displayName || "User"}</h3>
-              <p className="text-sm text-gorlea-text/70">{user?.email || ""}</p>
+            <div className="overflow-hidden">
+              <h3 className="font-medium truncate">{user?.displayName || "User"}</h3>
+              <p className="text-sm text-gorlea-text/70 truncate">{user?.email || ""}</p>
             </div>
           </div>
         </div>
