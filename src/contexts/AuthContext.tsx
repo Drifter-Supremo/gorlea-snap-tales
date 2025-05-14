@@ -231,9 +231,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("No authenticated user");
     }
 
-    setIsLoading(true);
     try {
       console.log("Starting profile update with data:", JSON.stringify(profileData));
+
+      // Update local user state first for immediate UI feedback
+      if (user) {
+        setUser({
+          ...user,
+          ...(profileData.displayName && { displayName: profileData.displayName }),
+          ...(profileData.photoURL && { photoURL: profileData.photoURL })
+        });
+        console.log("Local user state updated immediately");
+      }
 
       // Step 1: Update Firebase Auth profile
       try {
@@ -283,30 +292,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // Step 3: Update local user state
-      if (user) {
-        setUser({
-          ...user,
-          ...(profileData.displayName && { displayName: profileData.displayName }),
-          ...(profileData.photoURL && { photoURL: profileData.photoURL })
-        });
-        console.log("Local user state updated");
-      }
-
+      // Show success toast after all operations are complete
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully",
       });
     } catch (error) {
       console.error("Error updating profile:", error);
+
+      // Revert local user state if there was an error
+      if (user && auth.currentUser) {
+        setUser({
+          ...user,
+          displayName: auth.currentUser.displayName,
+          photoURL: auth.currentUser.photoURL
+        });
+      }
+
       toast({
         title: "Update failed",
         description: error instanceof Error ? error.message : "There was a problem updating your profile",
         variant: "destructive",
       });
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

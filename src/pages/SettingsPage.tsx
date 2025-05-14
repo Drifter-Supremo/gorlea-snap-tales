@@ -78,21 +78,32 @@ const SettingsPage: React.FC = () => {
 
   const handleUpload = () => {
     if (!fileInputRef.current?.files?.[0]) return;
+
+    // Set uploading state immediately for UI feedback
     setIsUploading(true);
+
+    // Clear the preview immediately for better UX
+    const fileToUpload = fileInputRef.current.files[0];
+    setPreviewUrl(null);
+
     onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const file = fileInputRef.current.files[0];
-        const storageRef = ref(storage, `profile-pictures/${currentUser.uid}`);
         try {
-          await uploadBytes(storageRef, file);
+          // Upload to Firebase Storage
+          const storageRef = ref(storage, `profile-pictures/${currentUser.uid}`);
+          await uploadBytes(storageRef, fileToUpload);
           const downloadURL = await getDownloadURL(storageRef);
+
+          // Update the profile with the new photo URL
           await updateUserProfile({ photoURL: downloadURL });
-          toast({ title: "Profile picture updated", description: "Your profile picture has been updated successfully" });
-          setPreviewUrl(null);
+
+          // Clear the file input
           if (fileInputRef.current) fileInputRef.current.value = '';
+
+          // Toast notification is already shown by AuthContext
         } catch (error) {
           console.error("Error uploading profile picture:", error);
-          toast({ title: "Upload failed", description: "There was a problem uploading your profile picture", variant: "destructive" });
+          // Error toast is already handled in AuthContext
         } finally {
           setIsUploading(false);
         }
@@ -103,9 +114,17 @@ const SettingsPage: React.FC = () => {
   const handleRemovePhoto = async () => {
     if (!user || !user.photoURL) return;
 
+    // Set uploading state immediately for UI feedback
     setIsUploading(true);
+
+    // Generate the default avatar URL
+    const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email || 'default'}`;
+
     try {
-      // If the photo is from our storage (not from dicebear)
+      // First update the profile to the default avatar for immediate UI feedback
+      await updateUserProfile({ photoURL: defaultAvatar });
+
+      // Then handle the storage deletion in the background
       if (user.photoURL.includes('firebasestorage')) {
         // Extract the path from the URL
         const fullPath = user.photoURL.split('?')[0].split('/o/')[1];
@@ -123,26 +142,15 @@ const SettingsPage: React.FC = () => {
             console.log("File deleted successfully");
           } catch (deleteError) {
             console.error("Error deleting file:", deleteError);
-            // Continue with profile update even if file deletion fails
+            // Continue since the profile has already been updated
           }
         }
       }
 
-      // Set the profile picture to the default avatar
-      const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email || 'default'}`;
-      await updateUserProfile({ photoURL: defaultAvatar });
-
-      toast({
-        title: "Profile picture removed",
-        description: "Your profile picture has been reset to the default avatar",
-      });
+      // Toast notification is already shown by AuthContext
     } catch (error) {
       console.error("Error removing profile picture:", error);
-      toast({
-        title: "Operation failed",
-        description: "There was a problem removing your profile picture",
-        variant: "destructive",
-      });
+      // Error toast is already handled in AuthContext
     } finally {
       setIsUploading(false);
     }
@@ -162,24 +170,20 @@ const SettingsPage: React.FC = () => {
       return;
     }
 
+    // Immediately update UI state for a smoother experience
     setIsSavingName(true);
+
+    // Close the edit mode immediately to prevent the green flash
+    setIsEditingName(false);
+
     try {
+      // Update the profile in the background
       await updateUserProfile({ displayName: displayName.trim() });
 
-      // Use a more subtle toast notification
-      toast({
-        title: "Name updated",
-        description: "Your display name has been updated successfully",
-      });
-
-      setIsEditingName(false);
+      // Toast notification will be shown by the AuthContext
     } catch (error) {
       console.error("Error updating display name:", error);
-      toast({
-        title: "Update failed",
-        description: "There was a problem updating your display name",
-        variant: "destructive",
-      });
+      // Error toast is already handled in AuthContext
     } finally {
       setIsSavingName(false);
     }
@@ -215,7 +219,7 @@ const SettingsPage: React.FC = () => {
       <Header />
 
       <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10">
-        <div className="transition-opacity duration-300">
+        <div>
           <div className="mb-6">
             <Button
               variant="ghost"
