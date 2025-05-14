@@ -123,9 +123,11 @@ const MainPage: React.FC = () => {
           </p>
 
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 relative">
               <h2 className="text-xl font-medium">1. Upload your photo</h2>
-              <ImageRequirementsTooltip />
+              <div className="mobile-requirements-tooltip">
+                <ImageRequirementsTooltip />
+              </div>
             </div>
             <ImageUploader onImageUpload={handleImageUpload} previewUrl={imagePreview} />
           </div>

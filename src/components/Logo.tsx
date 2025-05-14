@@ -22,7 +22,7 @@ const Logo: React.FC<LogoProps> = ({ size = "md", className = "" }) => {
   return (
     <div className={`flex ${size === "lg" ? "flex-col" : "flex-row"} items-center ${className}`}>
       <img
-        src="/new-gorlea-logo.png"
+        src={import.meta.env.BASE_URL + "new-gorlea-logo.png"}
         alt="Gorlea Snaps Logo"
         className={`${logoSizeClasses[size]} object-contain`}
       />

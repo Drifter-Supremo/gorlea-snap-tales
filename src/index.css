@@ -133,6 +133,14 @@
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
+/* Mobile-specific styles */
+@media (max-width: 1023px) {
+  .mobile-requirements-tooltip {
+    position: relative;
+    top: -8px; /* Move the tooltip up by 8px on mobile */
+  }
+}
+
 .writing-animation::after {
   content: '|';
   animation: blink 1s infinite;
