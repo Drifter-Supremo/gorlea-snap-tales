@@ -19,9 +19,46 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, onEnded }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
+  // Keep track of the last played position to prevent unexpected resets
+  const lastPositionRef = useRef<number>(0);
+  const isUserInteractionRef = useRef<boolean>(false);
+
+  // Use a ref to track if this is the first render
+  const isInitialRender = useRef<boolean>(true);
+
+  // Store the audio URL in a ref to detect changes
+  const previousUrlRef = useRef<string>(audioUrl);
+
   useEffect(() => {
-    // Create audio element
-    const audio = new Audio();
+    // Check if the URL has changed
+    const urlChanged = previousUrlRef.current !== audioUrl;
+    previousUrlRef.current = audioUrl;
+
+    // If this is not the initial render and the URL hasn't changed,
+    // don't recreate the audio element to preserve playback state
+    if (!isInitialRender.current && !urlChanged && audioRef.current) {
+      console.log("Skipping audio element recreation - URL unchanged");
+      return;
+    }
+
+    // Mark that we've passed the initial render
+    isInitialRender.current = false;
+
+    // Create or recreate audio element
+    let audio: HTMLAudioElement;
+
+    // If we already have an audio element and the URL changed, clean it up first
+    if (audioRef.current && urlChanged) {
+      console.log("URL changed, cleaning up previous audio element");
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      // Reset state
+      lastPositionRef.current = 0;
+      setCurrentTime(0);
+    }
+
+    // Create a new audio element
+    audio = new Audio();
     audioRef.current = audio;
 
     // Set up event listeners
@@ -32,13 +69,43 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, onEnded }) => {
     };
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      // Only update the time if it's a reasonable change
+      // This prevents unexpected resets to 0
+      const newTime = audio.currentTime;
+
+      // If the time jumps backward significantly and it's not due to user interaction,
+      // it might be a bug - ignore it
+      if (!isUserInteractionRef.current &&
+          lastPositionRef.current > 1 &&
+          newTime < lastPositionRef.current - 1 &&
+          newTime < 1) {
+        console.warn("Detected unexpected time reset, ignoring", {
+          lastPosition: lastPositionRef.current,
+          newTime
+        });
+
+        // Try to restore the position
+        try {
+          audio.currentTime = lastPositionRef.current;
+        } catch (e) {
+          console.error("Failed to restore position:", e);
+        }
+        return;
+      }
+
+      // Update the last position reference
+      lastPositionRef.current = newTime;
+      setCurrentTime(newTime);
+
+      // Reset the user interaction flag
+      isUserInteractionRef.current = false;
     };
 
     const handleEnded = () => {
       console.log("Audio playback ended");
       setIsPlaying(false);
       setCurrentTime(0);
+      lastPositionRef.current = 0;
       if (onEnded) onEnded();
     };
 
@@ -78,34 +145,69 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, onEnded }) => {
       console.log("Audio can play now");
     };
 
+    const handleSeeking = () => {
+      console.log("Audio seeking to:", audio.currentTime);
+    };
+
+    const handleSeeked = () => {
+      console.log("Audio seeked to:", audio.currentTime);
+      lastPositionRef.current = audio.currentTime;
+    };
+
+    const handleProgress = () => {
+      // Check if the audio has buffered enough data
+      if (audio.buffered.length > 0) {
+        const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+        const duration = audio.duration;
+        console.log(`Audio buffered: ${Math.round(bufferedEnd / duration * 100)}%`);
+      }
+    };
+
     // Add event listeners
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', handleError);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('seeking', handleSeeking);
+    audio.addEventListener('seeked', handleSeeked);
+    audio.addEventListener('progress', handleProgress);
 
     // Set audio properties
     audio.preload = "auto";
 
     // Set the source after adding event listeners
     console.log("Setting audio source:", audioUrl);
-    audio.src = audioUrl;
-    audio.load();
+
+    // Check if we're already using this URL to prevent unnecessary reloads
+    if (audio.src !== audioUrl) {
+      audio.src = audioUrl;
+      audio.load();
+    } else {
+      console.log("Audio source unchanged, skipping reload");
+    }
 
     // Clean up
     return () => {
-      console.log("Cleaning up audio player");
-      audio.pause();
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.src = '';
+      // If the component is unmounting (not just due to URL change), clean up the audio element
+      if (audioRef.current === audio) {
+        console.log("Cleaning up audio player on unmount");
+        audio.pause();
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('error', handleError);
+        audio.removeEventListener('canplay', handleCanPlay);
+        audio.removeEventListener('seeking', handleSeeking);
+        audio.removeEventListener('seeked', handleSeeked);
+        audio.removeEventListener('progress', handleProgress);
+        audio.src = '';
 
-      // Don't revoke the URL here, as it might be needed elsewhere
-      // The StoryPage component should handle URL cleanup
+        // Don't revoke the URL here, as it might be needed elsewhere
+        // The StoryPage component should handle URL cleanup
+      } else {
+        console.log("Skipping cleanup - audio element has been replaced");
+      }
     };
   }, [audioUrl, onEnded, toast]);
 
@@ -137,8 +239,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, onEnded }) => {
 
     try {
       const newTime = value[0];
+
+      // Mark this as a user interaction to prevent the reset detection from triggering
+      isUserInteractionRef.current = true;
+
+      // Update our position tracking
+      lastPositionRef.current = newTime;
+
+      // Set the new time on the audio element
       audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
+
+      console.log("User changed time to:", newTime);
     } catch (error) {
       console.error("Error setting time:", error);
     }

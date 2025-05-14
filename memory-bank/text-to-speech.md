@@ -23,11 +23,32 @@ The text-to-speech feature has been enhanced with the following improvements:
    - Added error state display in the audio player
    - Improved event handling for audio errors
    - Added proper cleanup of audio resources
+   - Fixed playback reset issues with improved state management
+   - Added protection against unexpected time resets during playback
 
 4. **User Experience Improvements**:
    - Added more informative toast notifications
    - Improved loading state feedback
    - Added validation of audio before playback
+   - Ensured continuous playback without interruptions
+   - Prevented unnecessary audio reloads during component re-renders
+
+5. **Background Audio Generation**:
+   - Implemented automatic background generation of audio for favorited stories
+   - Audio player appears automatically when audio is ready
+   - Audio button disappears once audio is ready to play
+   - Reduced perceived waiting time for users
+
+6. **Increased Narration Speed**:
+   - Adjusted voice instructions to increase narration speed by ~20%
+   - Added genre-specific speed adjustments (slightly slower for film noir)
+   - Maintained clarity and emotion while improving pacing
+
+7. **Playback Stability Fixes**:
+   - Added protection against unexpected time resets
+   - Improved audio element lifecycle management
+   - Added tracking of user interactions to prevent false resets
+   - Implemented URL change detection to properly handle audio source changes
 
 ## Implementation Details
 
@@ -157,10 +178,13 @@ To improve the user experience and reduce unnecessary API calls, we've implement
 ## Future Enhancements
 
 1. ✅ Caching generated audio to reduce API calls (Implemented)
-2. Adding more voice options for user selection
-3. Implementing partial narration for longer stories
-4. Adding speed controls for playback
-5. Supporting different languages for narration
+2. ✅ Background audio generation for favorited stories (Implemented)
+3. ✅ Increased narration speed for better pacing (Implemented)
+4. Adding more voice options for user selection
+5. Implementing partial narration for longer stories
+6. Adding user-controlled speed controls for playback
+7. Supporting different languages for narration
+8. Adding a progress indicator for background audio generation
 
 ## Testing Notes
 

@@ -10,7 +10,7 @@ import { getStoryById, Story } from "@/data/storiesData";
 import { Genre } from "@/components/GenreSelector";
 import { addToFavorites, removeFromFavorites, checkIfFavorite } from "@/data/favoritesData";
 import StoryPageSkeleton from "@/components/StoryPageSkeleton";
-import AudioPlayer from "@/components/AudioPlayer";
+import SimpleAudioPlayer from "@/components/SimpleAudioPlayer";
 import { generateSpeech, checkAudioSupport } from "@/services/textToSpeechService";
 import { saveAudioToStorage, getAudioForStory, deleteAudioForStory } from "@/services/audioStorageService";
 
@@ -185,6 +185,8 @@ const StoryPage: React.FC = () => {
 
   // Store the audio blob in a ref to prevent it from being garbage collected
   const audioBlobRef = useRef<Blob | null>(null);
+  const [isAudioReady, setIsAudioReady] = useState(false);
+  const [isBackgroundGenerating, setIsBackgroundGenerating] = useState(false);
 
   // Clean up function to handle URL revocation
   const cleanupAudio = useCallback(() => {
@@ -200,6 +202,7 @@ const StoryPage: React.FC = () => {
     }
     audioBlobRef.current = null;
     setShowAudioPlayer(false);
+    setIsAudioReady(false);
   }, [audioUrl]);
 
   // Clean up on component unmount
@@ -209,13 +212,173 @@ const StoryPage: React.FC = () => {
     };
   }, [cleanupAudio]);
 
+  // Background audio generation when story loads
+  useEffect(() => {
+    // Only start background generation if:
+    // 1. We have a story
+    // 2. No audio is currently loaded
+    // 3. We're not already generating audio
+    // 4. The story is in favorites (to save API calls for non-favorites)
+    if (story && id && user && isFavorite && !audioUrl && !isGeneratingAudio && !isBackgroundGenerating) {
+      const generateAudioInBackground = async () => {
+        try {
+          setIsBackgroundGenerating(true);
+
+          // First check if we already have audio stored
+          try {
+            const existingAudioUrl = await getAudioForStory(id);
+            if (existingAudioUrl) {
+              console.log("Found existing audio in background check:", existingAudioUrl);
+              setAudioUrl(existingAudioUrl);
+              setIsAudioReady(true);
+              setIsBackgroundGenerating(false);
+              return;
+            }
+          } catch (audioError) {
+            console.error("Error checking for existing audio in background:", audioError);
+            // Continue to generate new audio
+          }
+
+          // Check if the browser supports audio playback
+          if (!checkAudioSupport()) {
+            console.warn("Browser doesn't support audio playback, skipping background generation");
+            setIsBackgroundGenerating(false);
+            return;
+          }
+
+          console.log("Starting background audio generation");
+
+          // Always use Nova voice as requested
+          const voice = 'nova';
+
+          // Create genre-specific system prompts for better narration
+          const genrePrompts: Record<Genre, string> = {
+            'rom-com': 'Narrate this romantic comedy with a warm, upbeat tone. Use a playful, light-hearted voice with subtle variations for different characters. Emphasize emotional moments with appropriate pauses and inflections. Deliver humorous lines with perfect timing and a hint of a smile in your voice. Maintain a brisk, energetic pace about 20% faster than your default speed.',
+
+            'horror': 'Narrate this horror story with a tense, suspenseful tone. Start with a moderately fast pace that becomes more urgent during frightening scenes. Use a hushed, slightly raspy quality for creepy moments. Create an atmosphere of dread with strategic pauses and occasional whispers. Lower your pitch slightly for ominous descriptions. Overall, speak about 20% faster than your default speed while preserving the suspenseful quality.',
+
+            'sci-fi': 'Narrate this science fiction story with a clear, precise tone. Use a sense of wonder and awe when describing futuristic technology or alien worlds. Maintain a confident, authoritative voice for technical explanations. For action sequences, increase your pace significantly. Create distinct vocal patterns for different characters, especially non-human ones. Throughout the narration, maintain a pace about 20% faster than your default speed.',
+
+            'film-noir': 'Narrate this film noir story with a smooth, slightly cynical tone. Since this is first-person narration, adopt a world-weary, seen-it-all quality. Lower your register slightly for that classic noir detective feel. Emphasize hard consonants and key words for dramatic effect. For dialogue, create subtle distinctions between characters without overacting. While film noir is traditionally slow, keep a moderately brisk pace about 15% faster than your default speed, while still allowing for dramatic pauses.'
+          };
+
+          // Get the appropriate prompt for the story genre
+          const instructions = genrePrompts[story.genre as Genre] || 'Narrate this story with appropriate emotion and pacing.';
+
+          // Generate speech from story content
+          console.log("Background generating speech for content length:", story.content.length);
+          const audioBlob = await generateSpeech(
+            story.content,
+            voice,
+            instructions
+          );
+
+          console.log("Background audio blob received, size:", audioBlob.size);
+
+          // Verify the blob has content
+          if (audioBlob.size === 0) {
+            throw new Error("Generated audio is empty");
+          }
+
+          // Store the blob in the ref to prevent garbage collection
+          audioBlobRef.current = audioBlob;
+
+          // Create a new blob with explicit MIME type to ensure browser compatibility
+          const newBlob = new Blob([audioBlob], { type: 'audio/mpeg' });
+
+          let url: string;
+
+          // Save to Firebase Storage
+          try {
+            // Save to Firebase Storage
+            const storageUrl = await saveAudioToStorage(
+              newBlob,
+              user.uid,
+              id,
+              story.genre
+            );
+
+            console.log("Background saved audio to Firebase Storage:", storageUrl);
+            url = storageUrl;
+          } catch (storageError) {
+            console.error("Error saving background audio to storage:", storageError);
+            // Fall back to local blob URL if storage fails
+            url = URL.createObjectURL(newBlob);
+          }
+
+          console.log("Background using audio URL:", url);
+
+          // Set the URL in state
+          setAudioUrl(url);
+
+          // Test the audio to make sure it's valid
+          const testAudio = new Audio();
+
+          // Set up event listeners for testing
+          const testPromise = new Promise<void>((resolve, reject) => {
+            const onCanPlay = () => {
+              console.log("Background test audio can play");
+              testAudio.removeEventListener('canplay', onCanPlay);
+              testAudio.removeEventListener('error', onError);
+              resolve();
+            };
+
+            const onError = (e: Event) => {
+              console.error("Background test audio error:", e, testAudio.error);
+              testAudio.removeEventListener('canplay', onCanPlay);
+              testAudio.removeEventListener('error', onError);
+              reject(new Error(testAudio.error ? `Audio error: ${testAudio.error.code}` : "Audio format not supported"));
+            };
+
+            testAudio.addEventListener('canplay', onCanPlay);
+            testAudio.addEventListener('error', onError);
+
+            // Set a timeout in case the events never fire
+            setTimeout(() => {
+              testAudio.removeEventListener('canplay', onCanPlay);
+              testAudio.removeEventListener('error', onError);
+              reject(new Error("Audio loading timed out"));
+            }, 5000);
+          });
+
+          // Set the source and load the audio
+          testAudio.preload = "auto";
+          testAudio.src = url;
+          testAudio.load();
+
+          // Wait for the test to complete
+          await testPromise;
+
+          // Mark audio as ready
+          setIsAudioReady(true);
+          console.log("Background audio generation complete and ready to play");
+
+        } catch (error) {
+          console.error("Error in background audio generation:", error);
+          // Don't show any error messages to the user for background generation
+        } finally {
+          setIsBackgroundGenerating(false);
+        }
+      };
+
+      // Start the background generation
+      generateAudioInBackground();
+    }
+  }, [story, id, user, isFavorite, audioUrl, isGeneratingAudio, isBackgroundGenerating]);
+
   const handleGenerateSpeech = async () => {
     if (!story || !id) return;
 
     try {
-      // If audio is already loaded, just toggle the player
-      if (audioUrl) {
-        setShowAudioPlayer(!showAudioPlayer);
+      // If audio is already loaded and ready, just show the player
+      if (audioUrl && isAudioReady) {
+        setShowAudioPlayer(true);
+        return;
+      }
+
+      // If audio is loading in the background, just log a message
+      if (isBackgroundGenerating) {
+        console.log("Audio narration is being prepared in the background");
         return;
       }
 
@@ -238,10 +401,8 @@ const StoryPage: React.FC = () => {
             setAudioUrl(existingAudioUrl);
             setShowAudioPlayer(true);
 
-            toast({
-              title: "Narration ready",
-              description: "Using previously generated narration.",
-            });
+            // Just log instead of showing a toast that might interrupt playback
+            console.log("Using previously generated narration");
 
             return;
           }
@@ -262,23 +423,20 @@ const StoryPage: React.FC = () => {
 
       // Create genre-specific system prompts for better narration
       const genrePrompts: Record<Genre, string> = {
-        'rom-com': 'Narrate this romantic comedy with a warm, upbeat tone. Use a playful, light-hearted voice with subtle variations for different characters. Emphasize emotional moments with appropriate pauses and inflections. Deliver humorous lines with perfect timing and a hint of a smile in your voice.',
+        'rom-com': 'Narrate this romantic comedy with a warm, upbeat tone. Use a playful, light-hearted voice with subtle variations for different characters. Emphasize emotional moments with appropriate pauses and inflections. Deliver humorous lines with perfect timing and a hint of a smile in your voice. Maintain a brisk, energetic pace about 20% faster than your default speed.',
 
-        'horror': 'Narrate this horror story with a tense, suspenseful tone. Start with a measured pace that gradually becomes more urgent during frightening scenes. Use a hushed, slightly raspy quality for creepy moments. Create an atmosphere of dread with strategic pauses and occasional whispers. Lower your pitch slightly for ominous descriptions.',
+        'horror': 'Narrate this horror story with a tense, suspenseful tone. Start with a moderately fast pace that becomes more urgent during frightening scenes. Use a hushed, slightly raspy quality for creepy moments. Create an atmosphere of dread with strategic pauses and occasional whispers. Lower your pitch slightly for ominous descriptions. Overall, speak about 20% faster than your default speed while preserving the suspenseful quality.',
 
-        'sci-fi': 'Narrate this science fiction story with a clear, precise tone. Use a sense of wonder and awe when describing futuristic technology or alien worlds. Maintain a confident, authoritative voice for technical explanations. For action sequences, increase your pace slightly while keeping clarity. Create distinct vocal patterns for different characters, especially non-human ones.',
+        'sci-fi': 'Narrate this science fiction story with a clear, precise tone. Use a sense of wonder and awe when describing futuristic technology or alien worlds. Maintain a confident, authoritative voice for technical explanations. For action sequences, increase your pace significantly. Create distinct vocal patterns for different characters, especially non-human ones. Throughout the narration, maintain a pace about 20% faster than your default speed.',
 
-        'film-noir': 'Narrate this film noir story with a smooth, slightly cynical tone. Use a deliberate, measured pace with dramatic pauses. Since this is first-person narration, adopt a world-weary, seen-it-all quality. Lower your register slightly for that classic noir detective feel. Emphasize hard consonants and elongate key words for dramatic effect. For dialogue, create subtle distinctions between characters without overacting.'
+        'film-noir': 'Narrate this film noir story with a smooth, slightly cynical tone. Since this is first-person narration, adopt a world-weary, seen-it-all quality. Lower your register slightly for that classic noir detective feel. Emphasize hard consonants and key words for dramatic effect. For dialogue, create subtle distinctions between characters without overacting. While film noir is traditionally slow, keep a moderately brisk pace about 15% faster than your default speed, while still allowing for dramatic pauses.'
       };
 
       // Get the appropriate prompt for the story genre
       const instructions = genrePrompts[story.genre as Genre] || 'Narrate this story with appropriate emotion and pacing.';
 
-      // Show toast to indicate processing
-      toast({
-        title: "Generating narration",
-        description: "Please wait while we create your audio narration...",
-      });
+      // Show toast to indicate processing (without affecting audio playback)
+      console.log("Generating narration...");
 
       // Generate speech from story content
       console.log("Calling generateSpeech with content length:", story.content.length);
@@ -317,10 +475,8 @@ const StoryPage: React.FC = () => {
           console.log("Saved audio to Firebase Storage:", storageUrl);
           url = storageUrl;
 
-          toast({
-            title: "Audio saved",
-            description: "Narration has been saved with your story for future use.",
-          });
+          // Just log instead of showing a toast that might interrupt playback
+          console.log("Audio saved with story for future use");
         } catch (storageError) {
           console.error("Error saving audio to storage:", storageError);
           // Fall back to local blob URL if storage fails
@@ -377,10 +533,8 @@ const StoryPage: React.FC = () => {
       // Show the player only after successful testing
       setShowAudioPlayer(true);
 
-      toast({
-        title: "Narration ready",
-        description: "Your story is now ready to be played.",
-      });
+      // Just log instead of showing a toast that might interrupt playback
+      console.log("Narration ready for playback");
     } catch (error) {
       console.error("Error generating speech:", error);
 
@@ -465,20 +619,23 @@ const StoryPage: React.FC = () => {
               <h1 className="text-3xl md:text-4xl font-serif font-bold">
                 {story.title}
               </h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-2 text-gorlea-text hover:text-gorlea-accent hover:bg-gorlea-tertiary"
-                onClick={handleGenerateSpeech}
-                disabled={isGeneratingAudio}
-              >
-                {isGeneratingAudio ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
-                <span className="sr-only">Listen to story narration</span>
-              </Button>
+              {/* Only show audio button if audio is not ready yet */}
+              {(!isAudioReady || !audioUrl) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2 text-gorlea-text hover:text-gorlea-accent hover:bg-gorlea-tertiary"
+                  onClick={handleGenerateSpeech}
+                  disabled={isGeneratingAudio || isBackgroundGenerating}
+                >
+                  {isGeneratingAudio || isBackgroundGenerating ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Volume2 className="h-5 w-5" />
+                  )}
+                  <span className="sr-only">Listen to story narration</span>
+                </Button>
+              )}
             </div>
 
             <div className="flex space-x-3 mb-8">
@@ -510,9 +667,14 @@ const StoryPage: React.FC = () => {
               </Button>
             </div>
 
-            {showAudioPlayer && audioUrl && (
+            {/* Show audio player when audio is ready or when user explicitly shows it */}
+            {((isAudioReady && audioUrl) || (showAudioPlayer && audioUrl)) && (
               <div className="mb-6">
-                <AudioPlayer audioUrl={audioUrl} onEnded={() => setShowAudioPlayer(false)} />
+                <SimpleAudioPlayer
+                  key="audio-player" // Use a stable key to prevent full remounts
+                  audioUrl={audioUrl}
+                  onEnded={() => setShowAudioPlayer(false)}
+                />
               </div>
             )}
 

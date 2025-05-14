@@ -54,7 +54,7 @@ export const generateSpeech = async (
     console.log(`Generating speech for text (${trimmedText.length} chars) with voice: ${voice}`);
 
     // Default instructions based on content type if none provided
-    const defaultInstructions = "Speak in a clear, engaging storytelling voice with appropriate emotion for the content.";
+    const defaultInstructions = "Speak in a clear, engaging storytelling voice with appropriate emotion for the content. Maintain a moderately fast pace throughout the narration, about 20% faster than your default speed, while still ensuring clarity and proper emphasis.";
 
     // Call OpenAI's text-to-speech API with timeout handling
     const controller = new AbortController();

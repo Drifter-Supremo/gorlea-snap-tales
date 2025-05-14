@@ -150,10 +150,10 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Add skeleton loaders for better UX
 
 ### 5.2 Testing
-- [ ] Write unit tests for core components
-- [ ] Test authentication flows
+- [x] Write unit tests for core components
+- [x] Test authentication flows
 - [x] Test story generation with various images
-- [ ] Perform cross-browser testing
+- [x] Perform cross-browser testing
 - [x] Test on various mobile devices
 
 ### 5.3 Error Handling
