@@ -1,13 +1,51 @@
+// Add TypeScript declaration for the _webpSupport property on window
+declare global {
+  interface Window {
+    _webpSupport?: boolean;
+  }
+}
+
+/**
+ * Checks if the browser supports WebP format
+ * @returns A Promise that resolves to a boolean indicating WebP support
+ */
+export async function supportsWebP(): Promise<boolean> {
+  // If we've already checked, return the cached result
+  if (typeof window._webpSupport !== 'undefined') {
+    return window._webpSupport;
+  }
+
+  return new Promise((resolve) => {
+    const webpImage = new Image();
+
+    webpImage.onload = function() {
+      // If the image has a natural width, WebP is supported
+      const result = webpImage.width > 0 && webpImage.height > 0;
+      window._webpSupport = result;
+      resolve(result);
+    };
+
+    webpImage.onerror = function() {
+      window._webpSupport = false;
+      resolve(false);
+    };
+
+    // A small WebP image
+    webpImage.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
+  });
+}
+
 /**
  * Compresses an image file to reduce its size while maintaining acceptable quality
- * Follows OpenAI's image requirements:
+ * Follows Claude's image requirements:
  * - Low-resolution: 512px x 512px
  * - High-resolution: 768px (short side) x 2000px (long side)
+ * - Converts to WebP format if supported by the browser for better compression
  *
  * @param file - The original image file to compress
  * @param maxWidth - Maximum width of the compressed image (default: 2000px)
  * @param maxHeight - Maximum height of the compressed image (default: 2000px)
- * @param quality - JPEG quality from 0 to 1 (default: 0.8)
+ * @param quality - Image quality from 0 to 1 (default: 0.8)
  * @returns A Promise that resolves to a compressed File object
  */
 export async function compressImage(
@@ -16,6 +54,9 @@ export async function compressImage(
   maxHeight: number = 2000,
   quality: number = 0.8
 ): Promise<File> {
+  // Check if WebP is supported
+  const webpSupported = await supportsWebP();
+
   return new Promise((resolve, reject) => {
     // Create a FileReader to read the file
     const reader = new FileReader();
@@ -30,7 +71,7 @@ export async function compressImage(
         let width = img.width;
         let height = img.height;
 
-        // Ensure the short side is at least 768px for high-res images (OpenAI requirement)
+        // Ensure the short side is at least 768px for high-res images (Claude requirement)
         const shortSide = Math.min(width, height);
         const longSide = Math.max(width, height);
 
@@ -61,6 +102,19 @@ export async function compressImage(
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
+        // Determine the output format and file extension
+        let outputType = 'image/jpeg';
+        let fileExtension = '.jpg';
+
+        // Use WebP if supported for better compression
+        if (webpSupported) {
+          outputType = 'image/webp';
+          fileExtension = '.webp';
+        }
+
+        // Generate a new filename with the appropriate extension
+        const fileName = file.name.replace(/\.[^/.]+$/, "") + fileExtension;
+
         // Convert the canvas to a Blob
         canvas.toBlob((blob) => {
           if (!blob) {
@@ -71,15 +125,15 @@ export async function compressImage(
           // Create a new File from the Blob
           const compressedFile = new File(
             [blob],
-            file.name,
+            fileName,
             {
-              type: 'image/jpeg',
+              type: outputType,
               lastModified: Date.now()
             }
           );
 
           resolve(compressedFile);
-        }, 'image/jpeg', quality);
+        }, outputType, quality);
       };
 
       img.onerror = () => {

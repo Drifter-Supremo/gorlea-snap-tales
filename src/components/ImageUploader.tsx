@@ -4,7 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { Camera, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { compressImage } from "@/lib/imageUtils";
+import { compressImage, supportsWebP } from "@/lib/imageUtils";
 
 interface ImageUploaderProps {
   onImageUpload: (file: File, previewUrl: string) => void;
@@ -33,7 +33,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
         description: "Optimizing image for upload...",
       });
 
-      // Compress the image
+      // Check if WebP is supported
+      const webpSupported = await supportsWebP();
+
+      // Compress the image (with WebP conversion if supported)
       const compressedFile = await compressImage(file);
 
       // Create a preview URL
@@ -43,10 +46,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
       onImageUpload(compressedFile, fileUrl);
       setDragActive(false);
 
-      // Show success toast
+      // Calculate size reduction percentage
+      const compressedSizeKB = Math.round(compressedFile.size / 1024);
+      const reductionPercent = Math.round((1 - (compressedFile.size / file.size)) * 100);
+
+      // Show success toast with format information
       toast({
-        title: "Image ready",
-        description: `Image optimized: ${Math.round(compressedFile.size / 1024)}KB`,
+        title: "Image optimized",
+        description: `${webpSupported ? 'WebP format' : 'JPEG format'}: ${compressedSizeKB}KB (${reductionPercent}% smaller)`,
       });
     } catch (error) {
       console.error("Error processing image:", error);
@@ -87,6 +94,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, previewUrl
             src={previewUrl}
             alt="Uploaded preview"
             className="absolute inset-0 w-full h-full object-cover rounded-lg"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gorlea-background/50 flex flex-col items-center justify-center">
             <p className="text-gorlea-text mb-4 text-center">

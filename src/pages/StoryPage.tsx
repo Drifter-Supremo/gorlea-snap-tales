@@ -184,6 +184,7 @@ const StoryPage: React.FC = () => {
                 src={story.imageUrl}
                 alt="Story inspiration"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gorlea-background to-transparent"></div>
             </div>

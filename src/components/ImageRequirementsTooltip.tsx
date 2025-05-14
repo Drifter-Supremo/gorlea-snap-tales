@@ -11,45 +11,67 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { InfoIcon } from "lucide-react";
+import { supportsWebP } from "@/lib/imageUtils";
 
 interface ImageRequirementsTooltipProps {
   className?: string;
 }
 
 // Content component to avoid duplication
-const RequirementsContent = () => (
-  <div className="space-y-3">
-    <h3 className="font-medium">Image Requirements</h3>
+const RequirementsContent = () => {
+  const [webpSupported, setWebpSupported] = useState<boolean | null>(null);
 
-    <div>
-      <h4 className="text-sm font-medium">Supported File Types:</h4>
-      <ul className="text-xs list-disc pl-4 mt-1">
-        <li>PNG (.png)</li>
-        <li>JPEG (.jpeg and .jpg)</li>
-        <li>WEBP (.webp)</li>
-        <li>Non-animated GIF (.gif)</li>
-      </ul>
-    </div>
+  // Check WebP support when component mounts
+  useEffect(() => {
+    const checkWebpSupport = async () => {
+      const isSupported = await supportsWebP();
+      setWebpSupported(isSupported);
+    };
 
-    <div>
-      <h4 className="text-sm font-medium">Size Limits:</h4>
-      <ul className="text-xs list-disc pl-4 mt-1">
-        <li>Maximum file size: 20MB</li>
-        <li>Recommended resolution: At least 768px on shortest side</li>
-      </ul>
-    </div>
+    checkWebpSupport();
+  }, []);
 
-    <div>
-      <h4 className="text-sm font-medium">Content Guidelines:</h4>
-      <ul className="text-xs list-disc pl-4 mt-1">
-        <li>No watermarks or logos</li>
-        <li>No text in the image</li>
-        <li>No NSFW content</li>
-        <li>Clear enough for a human to understand</li>
-      </ul>
+  return (
+    <div className="space-y-3">
+      <h3 className="font-medium">Image Requirements</h3>
+
+      <div>
+        <h4 className="text-sm font-medium">Supported File Types:</h4>
+        <ul className="text-xs list-disc pl-4 mt-1">
+          <li>PNG (.png)</li>
+          <li>JPEG (.jpeg and .jpg)</li>
+          <li>WEBP (.webp)</li>
+          <li>Non-animated GIF (.gif)</li>
+        </ul>
+        {webpSupported !== null && (
+          <p className="text-xs mt-1 italic">
+            {webpSupported
+              ? "Your browser supports WebP format for better image compression."
+              : "Your browser doesn't support WebP format. Images will be saved as JPEG."}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <h4 className="text-sm font-medium">Size Limits:</h4>
+        <ul className="text-xs list-disc pl-4 mt-1">
+          <li>Maximum file size: 20MB</li>
+          <li>Recommended resolution: At least 768px on shortest side</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-medium">Content Guidelines:</h4>
+        <ul className="text-xs list-disc pl-4 mt-1">
+          <li>No watermarks or logos</li>
+          <li>No text in the image</li>
+          <li>No NSFW content</li>
+          <li>Clear enough for a human to understand</li>
+        </ul>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ImageRequirementsTooltip: React.FC<ImageRequirementsTooltipProps> = ({
   className = "",

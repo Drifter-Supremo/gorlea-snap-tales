@@ -184,6 +184,7 @@ const FavoritesPage: React.FC = () => {
                           src={story.imageUrl}
                           alt={story.title}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </div>
                       <div className="p-4 sm:w-2/3 flex flex-col">
