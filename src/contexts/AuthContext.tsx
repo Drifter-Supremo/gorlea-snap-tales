@@ -8,9 +8,12 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   User as FirebaseUser
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 // Extended user interface that includes Firebase user properties and our custom properties
@@ -30,6 +33,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   updateUserProfile: (profileData: { displayName?: string; photoURL?: string }) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -229,29 +233,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setIsLoading(true);
     try {
-      // Update Firebase Auth profile
-      await updateProfile(auth.currentUser, profileData);
+      console.log("Starting profile update with data:", JSON.stringify(profileData));
 
-      // Update Firestore document
+      // Step 1: Update Firebase Auth profile
+      try {
+        await updateProfile(auth.currentUser, profileData);
+        console.log("Firebase Auth profile updated successfully");
+      } catch (authError) {
+        console.error("Error updating Firebase Auth profile:", authError);
+        throw new Error(`Auth profile update failed: ${authError instanceof Error ? authError.message : String(authError)}`);
+      }
+
+      // Step 2: Update Firestore document
       if (auth.currentUser.uid) {
-        await setDoc(doc(db, "users", auth.currentUser.uid),
-          {
-            ...profileData,
+        try {
+          // First check if the user document exists
+          const userDocRef = doc(db, "users", auth.currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          // Prepare update data
+          const updateData = {
             ...(profileData.photoURL && { photoURL: profileData.photoURL }),
             ...(profileData.displayName && { displayName: profileData.displayName }),
             updatedAt: new Date().toISOString()
-          },
-          { merge: true }
-        );
+          };
+
+          if (!userDoc.exists()) {
+            // Create the document if it doesn't exist
+            console.log("User document doesn't exist, creating it");
+            await setDoc(userDocRef, {
+              ...updateData,
+              email: auth.currentUser.email,
+              createdAt: new Date().toISOString()
+            });
+          } else {
+            // Update the existing document
+            console.log("Updating existing user document");
+            await setDoc(userDocRef, updateData, { merge: true });
+          }
+          console.log("Firestore document updated successfully");
+        } catch (firestoreError) {
+          console.error("Error updating Firestore document:", firestoreError);
+          // Continue even if Firestore update fails, as the Auth profile was updated
+          toast({
+            title: "Partial update",
+            description: "Profile updated but database sync failed. Some features may be limited.",
+            variant: "destructive",
+          });
+        }
       }
 
-      // Update local user state
+      // Step 3: Update local user state
       if (user) {
         setUser({
           ...user,
           ...(profileData.displayName && { displayName: profileData.displayName }),
           ...(profileData.photoURL && { photoURL: profileData.photoURL })
         });
+        console.log("Local user state updated");
       }
 
       toast({
@@ -262,7 +301,75 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error updating profile:", error);
       toast({
         title: "Update failed",
-        description: "There was a problem updating your profile",
+        description: error instanceof Error ? error.message : "There was a problem updating your profile",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteAccount = async (password: string) => {
+    if (!auth.currentUser || !user) {
+      throw new Error("No authenticated user");
+    }
+
+    setIsLoading(true);
+    try {
+      // Re-authenticate the user first (required for sensitive operations)
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email || '',
+        password
+      );
+
+      await reauthenticateWithCredential(auth.currentUser, credential);
+
+      // Delete user data from Firestore
+      // 1. Delete user document
+      await deleteDoc(doc(db, "users", user.uid));
+
+      // 2. Delete user's favorites
+      const favoritesQuery = query(
+        collection(db, "favorites"),
+        where("userId", "==", user.uid)
+      );
+      const favoritesSnapshot = await getDocs(favoritesQuery);
+      const deletePromises = favoritesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+
+      // 3. Delete user's stories
+      const storiesQuery = query(
+        collection(db, "stories"),
+        where("userId", "==", user.uid)
+      );
+      const storiesSnapshot = await getDocs(storiesQuery);
+      const storyDeletePromises = storiesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(storyDeletePromises);
+
+      // Finally, delete the Firebase Auth user
+      await deleteUser(auth.currentUser);
+
+      toast({
+        title: "Account deleted",
+        description: "Your account and all associated data have been permanently deleted",
+      });
+    } catch (error: any) {
+      let errorMessage = "Failed to delete account";
+
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (error.code === 'auth/requires-recent-login') {
+        errorMessage = "This operation requires recent authentication. Please log in again before retrying.";
+      }
+
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Account deletion failed",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -279,7 +386,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     logout,
     forgotPassword,
-    updateUserProfile
+    updateUserProfile,
+    deleteAccount
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

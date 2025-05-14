@@ -122,9 +122,9 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ### 4.1 User Profile
 - [x] Create profile page component (SettingsPage)
 - [x] Implement profile picture upload & update
-- [ ] Add user display name management
+- [x] Add user display name management
 - [x] Create account settings page
-- [ ] Implement account deletion
+- [x] Implement account deletion
 
 ### 4.2 Favorites Management
 - [x] Create favorites collection in Firestore

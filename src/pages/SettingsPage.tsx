@@ -1,26 +1,48 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ChevronLeft, Upload, Camera, Trash2, Loader2 } from "lucide-react";
+import { ChevronLeft, Upload, Camera, Trash2, Loader2, Save, Edit, X, AlertTriangle } from "lucide-react";
 import Header from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const SettingsPage: React.FC = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, deleteAccount } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Initialize display name from user data
+  useEffect(() => {
+    if (user?.displayName) {
+      setDisplayName(user.displayName);
+    }
+  }, [user?.displayName]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +82,7 @@ const SettingsPage: React.FC = () => {
     onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const file = fileInputRef.current.files[0];
-        const storageRef = ref(storage, `users/${currentUser.uid}/images/${Date.now()}_${file.name}`);
+        const storageRef = ref(storage, `profile-pictures/${currentUser.uid}`);
         try {
           await uploadBytes(storageRef, file);
           const downloadURL = await getDownloadURL(storageRef);
@@ -85,9 +107,25 @@ const SettingsPage: React.FC = () => {
     try {
       // If the photo is from our storage (not from dicebear)
       if (user.photoURL.includes('firebasestorage')) {
-        // Delete the file from storage
-        const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-        await deleteObject(storageRef);
+        // Extract the path from the URL
+        const fullPath = user.photoURL.split('?')[0].split('/o/')[1];
+        if (fullPath) {
+          // Decode the URL-encoded path
+          const decodedPath = decodeURIComponent(fullPath);
+          console.log("Attempting to delete file at path:", decodedPath);
+
+          // Create a reference to the file
+          const storageRef = ref(storage, decodedPath);
+
+          try {
+            // Try to delete the file
+            await deleteObject(storageRef);
+            console.log("File deleted successfully");
+          } catch (deleteError) {
+            console.error("Error deleting file:", deleteError);
+            // Continue with profile update even if file deletion fails
+          }
+        }
       }
 
       // Set the profile picture to the default avatar
@@ -114,12 +152,70 @@ const SettingsPage: React.FC = () => {
     fileInputRef.current?.click();
   };
 
+  const handleUpdateDisplayName = async () => {
+    if (!displayName.trim()) {
+      toast({
+        title: "Invalid name",
+        description: "Please enter a valid name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      await updateUserProfile({ displayName: displayName.trim() });
+
+      // Use a more subtle toast notification
+      toast({
+        title: "Name updated",
+        description: "Your display name has been updated successfully",
+      });
+
+      setIsEditingName(false);
+    } catch (error) {
+      console.error("Error updating display name:", error);
+      toast({
+        title: "Update failed",
+        description: "There was a problem updating your display name",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!password) {
+      toast({
+        title: "Password required",
+        description: "Please enter your password to confirm account deletion",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteAccount(password);
+      // If successful, the user will be logged out and redirected automatically
+      // due to the auth state change listener
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      // Error toast is handled in the AuthContext
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setPassword("");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gorlea-background text-gorlea-text flex flex-col">
       <Header />
 
       <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10">
-        <div className="animate-fade-in">
+        <div className="transition-opacity duration-300">
           <div className="mb-6">
             <Button
               variant="ghost"
@@ -193,7 +289,53 @@ const SettingsPage: React.FC = () => {
                 <div className="flex-1 space-y-4 w-full">
                   <div>
                     <Label>Name</Label>
-                    <p className="text-gorlea-text font-medium">{user?.displayName || "Not set"}</p>
+                    {isEditingName ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          placeholder="Enter your name"
+                          className="bg-gorlea-tertiary border-gorlea-tertiary text-gorlea-text"
+                        />
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                            onClick={() => setIsEditingName(false)}
+                            disabled={isSavingName}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                            onClick={handleUpdateDisplayName}
+                            disabled={isSavingName}
+                          >
+                            {isSavingName ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Save className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-gorlea-text font-medium">{user?.displayName || "Not set"}</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                          onClick={() => setIsEditingName(true)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -224,6 +366,71 @@ const SettingsPage: React.FC = () => {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gorlea-secondary border-gorlea-tertiary mt-6">
+            <CardHeader>
+              <CardTitle className="text-red-500">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanent actions that cannot be undone
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Delete Account
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-gorlea-secondary border-gorlea-tertiary">
+                  <DialogHeader>
+                    <DialogTitle className="text-red-500">Delete Account</DialogTitle>
+                    <DialogDescription>
+                      This action cannot be undone. This will permanently delete your account and all associated data.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <p className="text-sm text-gorlea-text/80">
+                      Please enter your password to confirm account deletion:
+                    </p>
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-gorlea-tertiary border-gorlea-tertiary text-gorlea-text"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDeleteDialogOpen(false)}
+                      className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Account"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>

@@ -42,6 +42,11 @@
   - Moved "Snaps" from the main text to the tilted card
   - Removed "Stories" from the tilted card
   - Updated page titles and meta descriptions
+- Enhanced user profile management:
+  - Added display name editing functionality in the settings page
+  - Implemented account deletion with password confirmation
+  - Added a "Danger Zone" section for destructive actions
+  - Updated the AuthContext to handle account deletion securely
 - Enhanced the GenreSelector component with improved UI and interactions:
   - Added tooltips with detailed genre descriptions
   - Implemented hover effects and visual feedback for selected genres
