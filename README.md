@@ -9,6 +9,7 @@ A mobile-first web application that generates AI stories based on uploaded photo
 - Image upload and preview
 - Genre selection (Rom-Com, Horror, Sci-Fi, Film Noir)
 - AI story generation
+- Text-to-speech narration with OpenAI's GPT-4o mini TTS
 - Save stories to favorites
 - Share stories
 - Mobile-first responsive design
@@ -28,6 +29,7 @@ A mobile-first web application that generates AI stories based on uploaded photo
 - Firebase Storage for image uploads
 - Firestore for database
 - AI integration for story generation (Claude 3.7 Sonnet)
+- OpenAI GPT-4o mini TTS for text-to-speech narration
 
 ## Backend Architecture
 
@@ -52,7 +54,13 @@ The backend for this application is implemented using Firebase services:
    - Story formatting and structure
    - High-quality narrative generation with emotional impact
 
-4. **Database Schema (Firestore)**
+4. **Text-to-Speech Service (OpenAI GPT-4o mini TTS)**
+   - High-quality voice narration of generated stories
+   - Genre-specific voice instructions for better performance
+   - Using "Nova" voice for all narrations
+   - Audio player with playback controls
+
+5. **Database Schema (Firestore)**
    - Users collection
      - id
      - email
@@ -169,6 +177,35 @@ async function uploadToFirebaseStorage(file, userId) {
 }
 ```
 
+### Text-to-Speech with OpenAI
+
+```javascript
+// Example text-to-speech generation with OpenAI
+import openai from '@/lib/openai';
+
+async function generateSpeech(text, voice = 'nova', instructions) {
+  try {
+    // Default instructions if none provided
+    const defaultInstructions = "Speak in a clear, engaging storytelling voice.";
+
+    // Call OpenAI's text-to-speech API
+    const mp3Response = await openai.audio.speech.create({
+      model: "gpt-4o-mini-tts",
+      voice, // 'nova' is our default voice
+      input: text,
+      instructions: instructions || defaultInstructions,
+    });
+
+    // Convert the response to a blob
+    const buffer = await mp3Response.arrayBuffer();
+    return new Blob([buffer], { type: 'audio/mpeg' });
+  } catch (error) {
+    console.error("Error generating speech:", error);
+    throw error;
+  }
+}
+```
+
 ## AI Story Generation with Claude 3.7 Sonnet
 
 The story generation process uses Anthropic's Claude 3.7 Sonnet model with the following approach:
@@ -243,6 +280,9 @@ To set up the development environment:
 
    # Claude API
    VITE_CLAUDE_API_KEY=your_claude_api_key
+
+   # OpenAI API (for text-to-speech)
+   VITE_OPENAI_API_KEY=your_openai_api_key
    ```
 3. Install dependencies: `npm install`
 4. Start the development server: `npm run dev`
@@ -274,7 +314,7 @@ For optimal story generation, images uploaded to Gorlea Snaps must meet these re
 2. User feedback and rating system for stories
 3. AI fine-tuning based on user preferences
 4. Multi-image story generation for more complex narratives
-5. Audio narration of stories using text-to-speech
+5. Enhanced audio narration with additional voice options
 6. Custom character development options
 7. Enhanced social sharing integrations
 8. Story collections and organization features
@@ -291,5 +331,6 @@ This project is actively being developed. The current implementation includes:
 - ✅ Firestore for database storage
 - ✅ Favorites system for saving stories
 - ✅ Mobile-first responsive design
+- ✅ Text-to-speech narration with OpenAI GPT-4o mini TTS
 
 This README provides a comprehensive guide to the Gorlea Snaps application architecture and implementation.

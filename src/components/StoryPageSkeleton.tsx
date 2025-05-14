@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -30,9 +30,14 @@ const StoryPageSkeleton: React.FC = () => {
           <Skeleton className="h-4 w-32" />
         </div>
 
-        {/* Title skeleton */}
-        <Skeleton className="h-10 w-3/4 mb-2" />
-        <Skeleton className="h-10 w-1/2 mb-4" />
+        {/* Title and narration button skeleton */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex-1">
+            <Skeleton className="h-10 w-3/4 mb-2" />
+            <Skeleton className="h-10 w-1/2" />
+          </div>
+          <Skeleton className="h-10 w-10 ml-2 rounded-md" />
+        </div>
 
         {/* Action buttons skeleton */}
         <div className="flex space-x-3 mb-8">

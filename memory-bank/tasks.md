@@ -152,7 +152,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ### 5.2 Testing
 - [ ] Write unit tests for core components
 - [ ] Test authentication flows
-- [ ] Test story generation with various images
+- [x] Test story generation with various images
 - [ ] Perform cross-browser testing
 - [x] Test on various mobile devices
 
