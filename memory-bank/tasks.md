@@ -147,7 +147,7 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 - [x] Add image optimization
 - [ ] Set up proper caching strategies
 - [ ] Optimize API calls with React Query
-- [ ] Add skeleton loaders for better UX
+- [x] Add skeleton loaders for better UX
 
 ### 5.2 Testing
 - [ ] Write unit tests for core components

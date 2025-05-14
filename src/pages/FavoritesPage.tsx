@@ -10,6 +10,7 @@ import { getStoryById, Story } from "@/data/storiesData";
 import { Input } from "@/components/ui/input";
 import { Genre } from "@/components/GenreSelector";
 import { getUserFavorites, removeFromFavorites } from "@/data/favoritesData";
+import FavoritesPageSkeleton from "@/components/FavoritesPageSkeleton";
 
 const genreLabels: Record<Genre, string> = {
   "rom-com": "Romantic Comedy",
@@ -128,10 +129,8 @@ const FavoritesPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gorlea-background flex flex-col">
         <Header />
-        <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10 flex items-center justify-center">
-          <div className="animate-pulse-slow">
-            <p>Loading your stories...</p>
-          </div>
+        <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10">
+          <FavoritesPageSkeleton />
         </main>
       </div>
     );

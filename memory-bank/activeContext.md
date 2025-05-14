@@ -82,6 +82,11 @@
   - Updated the ImageUploader component to show WebP conversion information
   - Added WebP support information to the ImageRequirementsTooltip component
   - Improved user feedback about image optimization with detailed toast notifications
+  - Implemented skeleton loaders for better user experience:
+    - Created StoryPageSkeleton for the story loading state
+    - Created FavoritesPageSkeleton for the favorites loading state
+    - Created StoryGenerationSkeleton for the story generation process
+    - Replaced simple loading messages with visually appealing skeleton UI
 
 ## Next Steps
 

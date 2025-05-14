@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getStoryById, Story } from "@/data/storiesData";
 import { Genre } from "@/components/GenreSelector";
 import { addToFavorites, removeFromFavorites, checkIfFavorite } from "@/data/favoritesData";
+import StoryPageSkeleton from "@/components/StoryPageSkeleton";
 
 const genreLabels: Record<Genre, string> = {
   "rom-com": "Romantic Comedy",
@@ -151,10 +152,8 @@ const StoryPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gorlea-background flex flex-col">
         <Header />
-        <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10 flex items-center justify-center">
-          <div className="animate-pulse-slow">
-            <p>Loading story...</p>
-          </div>
+        <main className="flex-grow container max-w-2xl mx-auto px-4 pt-20 pb-10">
+          <StoryPageSkeleton />
         </main>
       </div>
     );

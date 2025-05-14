@@ -10,6 +10,7 @@ import ImageRequirementsTooltip from "@/components/ImageRequirementsTooltip";
 import { Loader2, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateStory } from "@/services/storyGenerator";
+import StoryGenerationSkeleton from "@/components/StoryGenerationSkeleton";
 
 const MainPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -154,15 +155,7 @@ const MainPage: React.FC = () => {
             </Button>
           </div>
 
-          {isGenerating && (
-            <div className="mt-6 p-4 bg-gorlea-secondary rounded-lg border border-gorlea-tertiary">
-              <div className="flex items-center justify-center">
-                <div className="writing-animation text-center text-lg font-serif">
-                  Creating your masterpiece...
-                </div>
-              </div>
-            </div>
-          )}
+          {isGenerating && <StoryGenerationSkeleton />}
         </div>
       </main>
     </div>
