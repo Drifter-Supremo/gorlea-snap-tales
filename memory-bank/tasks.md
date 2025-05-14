@@ -143,8 +143,8 @@ This document outlines the step-by-step tasks to set up, develop, and deploy the
 ## Phase 5: Optimization & Testing
 
 ### 5.1 Performance Optimization
-- [ ] Implement lazy loading for components
-- [ ] Add image optimization
+- [x] Implement lazy loading for components
+- [x] Add image optimization
 - [ ] Set up proper caching strategies
 - [ ] Optimize API calls with React Query
 - [ ] Add skeleton loaders for better UX
