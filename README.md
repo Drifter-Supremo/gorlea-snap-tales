@@ -5,7 +5,7 @@ A mobile-first web application that generates AI stories based on uploaded photo
 
 ## Features
 
-- User authentication (login/signup, guest access)
+- User authentication (login/signup)
 - Image upload and preview
 - Genre selection (Rom-Com, Horror, Sci-Fi, Film Noir)
 - AI story generation
@@ -23,40 +23,43 @@ A mobile-first web application that generates AI stories based on uploaded photo
 - React Query for data handling
 - Lucide React for icons
 
-### Backend Requirements (Future Implementation)
-- Authentication service (Firebase Auth)
-- Image upload and storage (Cloudinary)
-- Database for user data and stories (Firestore)
-- AI integration for story generation (OpenAI GPT-4.1)
+### Backend
+- Firebase Authentication for user management
+- Firebase Storage for image uploads
+- Firestore for database
+- AI integration for story generation (Claude 3.7 Sonnet)
 
 ## Backend Architecture
 
-To implement the backend for this application, the following components are needed:
+The backend for this application is implemented using Firebase services:
 
-1. **Authentication Service**
-   - User registration, login, and account management
-   - JWT or session-based auth
-   - Password reset functionality
-   - Social login options (optional)
+1. **Authentication Service (Firebase Authentication)**
+   - User registration and login with email/password
+   - Password reset functionality with customized email templates
+   - User profile management
+   - Authentication state management
 
-2. **Image Processing Service**
-   - Image upload endpoint
-   - Compression/resizing
-   - Storage with secure access
-   - Image metadata extraction for AI context
+2. **Image Storage (Firebase Storage)**
+   - Secure image upload directly from the browser
+   - Organized storage structure:
+     - `/users/{userId}/images/` - Profile pictures
+     - `/stories/{userId}/{timestamp}_{filename}` - Story images
+   - Security rules to protect user data
 
-3. **Story Generation Service**
-   - OpenAI GPT or similar integration
-   - Prompt engineering based on image content and selected genre
+3. **Story Generation Service (Claude 3.7 Sonnet)**
+   - Image analysis using Claude's vision capabilities
+   - Genre-specific prompt engineering
    - Story formatting and structure
+   - High-quality narrative generation with emotional impact
 
-4. **Database Schema**
+4. **Database Schema (Firestore)**
    - Users collection
      - id
      - email
-     - name
-     - profilePicture
+     - displayName
+     - photoURL
      - createdAt
+     - preferences (optional)
    - Stories collection
      - id
      - userId (owner)
@@ -65,151 +68,163 @@ To implement the backend for this application, the following components are need
      - genre
      - imageUrl
      - createdAt
-   - Favorites collection (or field in Users)
+     - isPublic
+   - Favorites collection
      - userId
      - storyId
      - createdAt
 
-5. **API Endpoints**
-   - `/api/auth` - Authentication endpoints
-   - `/api/upload` - Image upload handling
-   - `/api/stories` - Story CRUD operations
-   - `/api/favorites` - Favorite management
-
 ## API Integration Guide
 
-### Authentication API
+### Firebase Authentication
 
 ```javascript
-// Example authentication integration
-async function login(email, password) {
-  const response = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  });
+// Example Firebase authentication integration
+import { auth } from '@/lib/firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from 'firebase/auth';
 
-  return response.json();
-}
-
-async function register(email, password, name) {
-  const response = await fetch('/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name })
-  });
-
-  return response.json();
-}
-```
-
-### Story Generation API
-
-```javascript
-// Example story generation integration
-async function generateStory(imageFile, genre, userId) {
-  const formData = new FormData();
-  formData.append('image', imageFile);
-  formData.append('genre', genre);
-  formData.append('userId', userId);
-
-  const response = await fetch('/api/stories/generate', {
-    method: 'POST',
-    body: formData
-  });
-
-  return response.json();
-}
-
-async function getStories(userId) {
-  const response = await fetch(`/api/stories/user/${userId}`);
-  return response.json();
-}
-```
-
-### Image Upload API (Cloudinary)
-
-```javascript
-// Example image upload integration with Cloudinary
-async function uploadToCloudinary(file, userId) {
+// User registration
+async function register(email, password) {
   try {
-    // Get Cloudinary configuration from environment variables
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UNSIGNED_PRESET;
-
-    // Create a FormData object to send the file
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", uploadPreset); // Use an unsigned upload preset
-    formData.append("folder", `users/${userId}`); // Organize by user ID
-
-    // Upload to Cloudinary using the upload API
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cloudinary upload failed: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    // Return the secure URL of the uploaded image
-    return data.secure_url;
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
   } catch (error) {
-    console.error("Error in uploadToCloudinary:", error);
-    throw new Error(`Cloudinary upload error: ${error.message}`);
+    console.error("Registration error:", error);
+    throw error;
+  }
+}
+
+// User login
+async function login(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
+}
+
+// Password reset
+async function resetPassword(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch (error) {
+    console.error("Password reset error:", error);
+    throw error;
   }
 }
 ```
 
-## AI Story Generation
+### Story Generation with Claude
 
-For the AI story generation component, you'll need to:
+```javascript
+// Example story generation with Claude
+import { generateStory } from '@/services/storyGenerator';
 
-1. Extract relevant information from the uploaded image using:
-   - Image classification (Google Cloud Vision, AWS Rekognition)
-   - Object detection
-   - Scene description
+async function createStory(imageFile, genre, userId) {
+  try {
+    // This function handles image upload to Firebase Storage and story generation
+    const result = await generateStory(imageFile, genre, userId);
+    return result;
+  } catch (error) {
+    console.error("Story generation error:", error);
+    throw error;
+  }
+}
+```
 
-2. Create a prompt for the AI based on:
-   - Image content description
-   - Selected genre
-   - Desired story length and structure
+### Firebase Storage Upload
 
-3. Generate the story using:
-   - OpenAI's GPT API or similar LLM
-   - Custom prompt engineering for each genre
-   - Post-processing to format the response
+```javascript
+// Example image upload to Firebase Storage
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
-Example prompt template:
+async function uploadToFirebaseStorage(file, userId) {
+  try {
+    // Create a unique file path with timestamp to avoid name collisions
+    const timestamp = Date.now();
+    const fileName = `${timestamp}_${file.name}`;
+
+    // Create a reference to the file location in Firebase Storage
+    const storageRef = ref(storage, `stories/${userId}/${fileName}`);
+
+    // Upload the file
+    const snapshot = await uploadBytes(storageRef, file);
+
+    // Get the download URL
+    const downloadURL = await getDownloadURL(storageRef);
+
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading to Firebase Storage:", error);
+    throw error;
+  }
+}
+```
+
+## AI Story Generation with Claude 3.7 Sonnet
+
+The story generation process uses Anthropic's Claude 3.7 Sonnet model with the following approach:
+
+1. Image Analysis
+   - Claude's built-in vision capabilities analyze the uploaded image
+   - No separate image classification service is needed
+   - The model extracts people, objects, settings, and mood from the image
+
+2. Genre-Specific Prompts
+   - Each genre (Rom-Com, Horror, Sci-Fi, Film Noir) has a custom prompt
+   - Prompts are designed to create intense, mind-blowing stories with high stakes
+   - Film Noir stories use first-person narration for authenticity
+
+3. Story Generation Process
+   - The image URL and genre-specific prompt are sent to Claude
+   - Claude generates a title and content based on the image and genre
+   - Stories are formatted with proper paragraphs and dialogue
+
+Example prompt structure:
 
 ```
-You are an expert storyteller. Create a {genre} story based on the following image description:
-{image_description}
-The story should have a compelling title, be approximately 500-800 words, and include well-formed paragraphs.
-For {genre}, focus on {genre_specific_instructions}.
+Create an INTENSE {genre} story inspired by this image. Your story should have HIGH STAKES and UNEXPECTED TWISTS.
+
+Use the people, setting, and objects in the image as a starting point, but then take the story in surprising directions.
+
+Your story MUST include:
+1) A compelling hook that draws readers in immediately
+2) A dramatic escalation of tension or stakes in the middle
+3) A powerful twist or revelation at the end that changes everything
+
+STRICT FORMATTING REQUIREMENTS:
+1) ABSOLUTELY NO DASHES OR HYPHENS ANYWHERE IN YOUR TEXT
+2) Use commas, periods, or line breaks instead
+3) Use proper quotation marks for dialogue
+4) Ensure perfect grammar and logical consistency throughout
 ```
 
 ## Security Considerations
 
-1. Implement proper authentication with JWT or sessions
-2. Use secure storage for images with access controls
-3. Rate limit the AI story generation API
-4. Validate and sanitize all user inputs
-5. Use HTTPS for all API communications
-6. Implement proper CORS policies
-7. Securely store API keys for third-party services
+1. Firebase Authentication handles secure user authentication
+2. Firebase Storage security rules restrict access to authorized users
+3. Firestore security rules protect user data
+4. Environment variables store API keys securely
+5. All API keys are excluded from version control via .gitignore
+6. Firebase SDK handles CORS issues automatically
+7. Client-side validation prevents malicious uploads
 
-## Scaling Considerations
+## Performance Optimizations
 
-1. Cache popular or recent stories
-2. Implement a CDN for image delivery
-3. Consider serverless architecture for the AI generation component
-4. Use a job queue for asynchronous story generation
-5. Implement database indexing for performance
-6. Consider read replicas for database scaling
+1. Firebase Storage provides CDN capabilities for image delivery
+2. Firestore indexing improves query performance
+3. Claude API parameters are optimized for faster story generation
+4. Image requirements ensure optimal processing
+5. Caching mechanisms reduce redundant API calls
+6. Proper error handling improves user experience
 
 ## Environment Setup
 
@@ -226,25 +241,55 @@ To set up the development environment:
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-   # OpenAI
-   VITE_OPENAI_API_KEY=your_openai_key
-
-   # Cloudinary
-   VITE_CLOUDINARY_CLOUD_NAME=dvir930ty
-   VITE_CLOUDINARY_UNSIGNED_PRESET=gorlea-snaps
+   # Claude API
+   VITE_CLAUDE_API_KEY=your_claude_api_key
    ```
 3. Install dependencies: `npm install`
 4. Start the development server: `npm run dev`
 
+## Image Requirements
+
+For optimal story generation, images uploaded to Gorlea Snaps must meet these requirements:
+
+### Supported File Types
+- PNG (.png)
+- JPEG (.jpeg and .jpg)
+- WEBP (.webp)
+- Non-animated GIF (.gif)
+
+### Size Limits
+- Maximum file size: 20MB per image
+- Low-resolution: 512px x 512px
+- High-resolution: 768px (short side) x 2000px (long side)
+
+### Content Requirements
+- No watermarks or logos
+- No text
+- No NSFW content
+- Clear enough for a human to understand
+
 ## Future Enhancements
 
-1. Additional story genres
-2. User feedback and rating system
+1. Additional story genres beyond the current four options
+2. User feedback and rating system for stories
 3. AI fine-tuning based on user preferences
-4. Multi-image story generation
-5. Audio narration of stories
-6. Custom character development
-7. Social sharing integrations
-8. Story collections and organization
+4. Multi-image story generation for more complex narratives
+5. Audio narration of stories using text-to-speech
+6. Custom character development options
+7. Enhanced social sharing integrations
+8. Story collections and organization features
+9. Collaborative storytelling capabilities
 
-This README provides a comprehensive guide for implementing the backend services required to support the Gorlea Snaps frontend application.
+## Project Status
+
+This project is actively being developed. The current implementation includes:
+
+- ✅ Complete user authentication with Firebase
+- ✅ Profile picture upload and management
+- ✅ Story generation with Claude 3.7 Sonnet
+- ✅ Firebase Storage for image uploads
+- ✅ Firestore for database storage
+- ✅ Favorites system for saving stories
+- ✅ Mobile-first responsive design
+
+This README provides a comprehensive guide to the Gorlea Snaps application architecture and implementation.
