@@ -27,6 +27,11 @@ const FavoritesPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     // Load favorite stories
     const loadFavorites = async () => {

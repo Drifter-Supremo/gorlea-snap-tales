@@ -37,6 +37,11 @@ const SettingsPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Initialize display name from user data
   useEffect(() => {
     if (user?.displayName) {

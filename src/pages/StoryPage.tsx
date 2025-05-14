@@ -33,6 +33,11 @@ const StoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const fetchStoryAndFavoriteStatus = async () => {
       if (!id || !user) {
