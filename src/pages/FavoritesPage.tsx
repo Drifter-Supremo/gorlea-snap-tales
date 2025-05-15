@@ -93,13 +93,15 @@ const FavoritesPage: React.FC = () => {
     loadFavorites();
   }, [user, toast]);
 
-  // Filter stories based on search term
-  const filteredStories = favoriteStories.filter(story => {
-    return (
-      story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      genreLabels[story.genre as Genre].toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  // Filter and sort stories based on search term and creation date
+  const filteredStories = favoriteStories
+    .filter(story => {
+      return (
+        story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        genreLabels[story.genre as Genre].toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleRemoveFavorite = async (storyId: string) => {
     if (!user) return;
@@ -159,10 +161,7 @@ const FavoritesPage: React.FC = () => {
             </Button>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-serif font-bold mb-2">Favorites</h1>
-          <p className="mb-6 text-gorlea-text/80">
-            Your saved AI-generated stories
-          </p>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold mb-6">Favorites</h1>
 
           <div className="relative mb-8">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gorlea-text/50" />

@@ -78,7 +78,7 @@ const NavigationDrawer = () => {
 
         <div className="absolute bottom-8 left-0 right-0 px-6">
           <p className="text-xs text-center text-gorlea-text/50">
-            © {new Date().getFullYear()} Gorlea Snaps
+            © {new Date().getFullYear()} Gorlea Snaps • Created by Sencere Tucker
           </p>
         </div>
       </SheetContent>
