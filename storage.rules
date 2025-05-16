@@ -1,8 +1,13 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // For testing purposes - allow all access
-    // WARNING: This is not secure for production
+    // Allow public read access to story images
+    match /story-images/{storyId}/{imageId} {
+      allow read: if true;  // Public read access
+      allow write: if request.auth != null;  // Only authenticated users can write
+    }
+
+    // Default rule: require authentication for all other operations
     match /{allPaths=**} {
       allow read, write: if request.auth != null;
     }

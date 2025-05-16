@@ -7,7 +7,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Simple rule: allow all operations for authenticated users
+    // Allow public read access to stories
+    match /stories/{storyId} {
+      allow read: if true;  // Public read access
+      allow write: if isAuthenticated();  // Only authenticated users can write
+    }
+
+    // Default rule: require authentication for all other operations
     match /{document=**} {
       allow read, write: if isAuthenticated();
     }

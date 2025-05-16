@@ -21,7 +21,11 @@ const genreLabels: Record<Genre, string> = {
   "film-noir": "Film Noir"
 };
 
-const StoryPage: React.FC = () => {
+interface StoryPageProps {
+  isPublicView?: boolean;
+}
+
+const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
   const { id } = useParams<{ id: string }>();
   const [story, setStory] = useState<Story | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,8 +44,14 @@ const StoryPage: React.FC = () => {
 
   useEffect(() => {
     const fetchStoryAndFavoriteStatus = async () => {
-      if (!id || !user) {
-        navigate("/app");
+      if (!id) {
+        navigate(isPublicView ? "/" : "/app");
+        return;
+      }
+
+      // If not in public view and no user, redirect to login
+      if (!isPublicView && !user) {
+        navigate("/");
         return;
       }
 
@@ -51,30 +61,31 @@ const StoryPage: React.FC = () => {
         if (fetchedStory) {
           setStory(fetchedStory);
 
-          try {
-            // Check if the story is in favorites using Firestore
-            const isFav = await checkIfFavorite(user.uid, id);
-            setIsFavorite(isFav);
+          // Only check favorites if user is authenticated and not in public view
+          if (user && !isPublicView) {
+            try {
+              // Check if the story is in favorites using Firestore
+              const isFav = await checkIfFavorite(user.uid, id);
+              setIsFavorite(isFav);
 
-            // Check if audio narration already exists for this story
-            if (isFav) {
-              try {
-                const existingAudioUrl = await getAudioForStory(id);
-                if (existingAudioUrl) {
-                  console.log("Found existing audio narration:", existingAudioUrl);
-                  setAudioUrl(existingAudioUrl);
-                  // Don't show the player automatically - let user click the button
+              // Check if audio narration already exists for this story
+              if (isFav) {
+                try {
+                  const existingAudioUrl = await getAudioForStory(id);
+                  if (existingAudioUrl) {
+                    console.log("Found existing audio narration:", existingAudioUrl);
+                    setAudioUrl(existingAudioUrl);
+                  }
+                } catch (audioError) {
+                  console.error("Error checking for existing audio:", audioError);
                 }
-              } catch (audioError) {
-                console.error("Error checking for existing audio:", audioError);
-                // Non-critical error, continue without existing audio
               }
+            } catch (error) {
+              console.error("Error checking favorite status:", error);
+              // Fallback to localStorage if Firestore fails
+              const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+              setIsFavorite(favorites.includes(id));
             }
-          } catch (error) {
-            console.error("Error checking favorite status:", error);
-            // Fallback to localStorage if Firestore fails
-            const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-            setIsFavorite(favorites.includes(id));
           }
         } else {
           toast({
@@ -82,7 +93,7 @@ const StoryPage: React.FC = () => {
             description: "The requested story could not be found.",
             variant: "destructive",
           });
-          navigate("/app");
+          navigate(isPublicView ? "/" : "/app");
         }
       } catch (error) {
         console.error("Error fetching story:", error);
@@ -91,7 +102,7 @@ const StoryPage: React.FC = () => {
           description: "There was a problem loading the story. Please try again.",
           variant: "destructive",
         });
-        navigate("/app");
+        navigate(isPublicView ? "/" : "/app");
       }
 
       setIsLoading(false);
@@ -101,7 +112,13 @@ const StoryPage: React.FC = () => {
   }, [id, navigate, toast, user]);
 
   const toggleFavorite = async () => {
-    if (!story || !user || !id) return;
+    // If not logged in, redirect to login page
+    if (!user) {
+      navigate("/");
+      return;
+    }
+
+    if (!story || !id) return;
 
     try {
       if (isFavorite) {
@@ -128,40 +145,51 @@ const StoryPage: React.FC = () => {
         }
 
         setIsFavorite(false);
-        toast({
-          title: "Removed from favorites",
-          description: "Story has been removed from your favorites and deleted to free up space.",
-        });
-
-        // Navigate back to the main page since the story has been deleted
-        navigate("/app");
       } else {
-        // Add to favorites in Firestore
         await addToFavorites(user.uid, id);
-
-        // Also update localStorage for backward compatibility
-        const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        favorites.push(id);
-        localStorage.setItem("favorites", JSON.stringify(favorites));
-
-        setIsFavorite(true);
-        toast({
-          title: "Added to favorites",
-          description: "Story has been added to your favorites.",
-        });
       }
+      setIsFavorite(!isFavorite);
+      toast({
+        title: isFavorite ? "Removed from favorites" : "Added to favorites",
+        description: isFavorite 
+          ? "This story has been removed from your favorites." 
+          : "This story has been added to your favorites.",
+      });
     } catch (error) {
       console.error("Error toggling favorite:", error);
       toast({
         title: "Error",
-        description: "Failed to update favorites. Please try again.",
+        description: "There was a problem updating your favorites. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Helper function to copy text to clipboard
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Link copied to clipboard!",
+        description: "Share this link with others to view the story.",
+      });
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      toast({
+        title: "Error copying link",
+        description: "Could not copy the link. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   const handleShare = async () => {
-    if (!story) return;
+    if (!story || !id) return;
+
+    // Create the appropriate URL for sharing
+    const shareUrl = isPublicView 
+      ? window.location.href 
+      : `${window.location.origin}/story/public/${id}`;
 
     // Use Web Share API if available
     if (navigator.share) {
@@ -169,22 +197,18 @@ const StoryPage: React.FC = () => {
         await navigator.share({
           title: story.title,
           text: `Check out this story: ${story.title}`,
-          url: window.location.href,
+          url: shareUrl,
         });
       } catch (error) {
         console.error("Error sharing:", error);
+        // Fall back to copying the URL if sharing fails or is cancelled
+        if (error.name !== 'AbortError') {
+          await copyToClipboard(shareUrl);
+        }
       }
     } else {
-      // Fallback to copying the URL
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link copied",
-          description: "Story link copied to clipboard.",
-        });
-      } catch (error) {
-        console.error("Failed to copy:", error);
-      }
+      // Fallback for browsers without Web Share API
+      await copyToClipboard(shareUrl);
     }
   };
 
@@ -625,7 +649,7 @@ const StoryPage: React.FC = () => {
                 {story.title}
               </h1>
               {/* Only show audio button if audio is not ready yet */}
-              {(!isAudioReady || !audioUrl) && (
+              {!isPublicView && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -644,31 +668,33 @@ const StoryPage: React.FC = () => {
             </div>
 
             <div className="flex space-x-3 mb-8">
-              <Button
-                variant="outline"
-                className="flex-1 border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-                onClick={toggleFavorite}
-              >
-                {isFavorite ? (
-                  <>
-                    <HeartOff className="mr-2 h-5 w-5" />
-                    Remove from Favorites
-                  </>
-                ) : (
-                  <>
-                    <Heart className="mr-2 h-5 w-5" />
-                    Save to Favorites
-                  </>
-                )}
-              </Button>
+              {!isPublicView && (
+                <Button
+                  variant="outline"
+                  className="flex-1 border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                  onClick={toggleFavorite}
+                >
+                  {isFavorite ? (
+                    <>
+                      <HeartOff className="mr-2 h-5 w-5" />
+                      Remove from Favorites
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="mr-2 h-5 w-5" />
+                      Save to Favorites
+                    </>
+                  )}
+                </Button>
+              )}
 
               <Button
                 variant="outline"
                 className="border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
                 onClick={handleShare}
               >
-                <Share className="h-5 w-5" />
-                <span className="sr-only">Share</span>
+                <Share className="h-5 w-5 mr-2" />
+                Share
               </Button>
             </div>
 
@@ -693,18 +719,30 @@ const StoryPage: React.FC = () => {
           <div className="mt-12 flex flex-col sm:flex-row gap-4">
             <Button
               className="bg-gorlea-accent hover:bg-gorlea-accent/90 flex-1"
-              onClick={() => navigate("/app")}
+              onClick={() => navigate(isPublicView ? "/" : "/app")}
             >
-              Create New Story
+              {isPublicView ? "Create Your Own Story" : "Create New Story"}
             </Button>
-            <Link to="/favorites" className="flex-1">
-              <Button
-                variant="outline"
-                className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-              >
-                View Favorites
-              </Button>
-            </Link>
+            {!isPublicView && (
+              <Link to="/favorites" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                >
+                  View Favorites
+                </Button>
+              </Link>
+            )}
+            {isPublicView && (
+              <Link to="/signup" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                >
+                  Sign Up for Free
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </main>

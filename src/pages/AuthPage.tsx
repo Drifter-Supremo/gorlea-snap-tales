@@ -16,7 +16,13 @@ const PASSWORD_REGEX = /^.{8,}$/;
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const AuthPage: React.FC = () => {
+type AuthView = 'login' | 'signup' | 'reset';
+
+interface AuthPageProps {
+  initialView?: AuthView;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'login' }) => {
   const navigate = useNavigate();
   const { login, signUp, isAuthenticated, isLoading: authLoading, forgotPassword } = useAuth();
 
@@ -28,7 +34,8 @@ const AuthPage: React.FC = () => {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [signupName, setSignupName] = useState("");
   const [resetEmail, setResetEmail] = useState("");
-  const [showResetForm, setShowResetForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<AuthView>(initialView);
+  const [showResetForm, setShowResetForm] = useState(initialView === 'reset');
 
   // Loading states
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -46,6 +53,12 @@ const AuthPage: React.FC = () => {
   const [signupConfirmPasswordValid, setSignupConfirmPasswordValid] = useState(true);
   const [signupNameValid, setSignupNameValid] = useState(true);
   const [loginPasswordValid, setLoginPasswordValid] = useState(true);
+
+  // Update active tab when initialView changes
+  React.useEffect(() => {
+    setActiveTab(initialView);
+    setShowResetForm(initialView === 'reset');
+  }, [initialView]);
 
   // If already authenticated, redirect to main app
   React.useEffect(() => {
@@ -250,7 +263,11 @@ const AuthPage: React.FC = () => {
             </form>
           </Card>
         ) : (
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => setActiveTab(value as AuthView)}
+            className="w-full"
+          >
             <TabsList className="grid grid-cols-2 w-full bg-gorlea-tertiary">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Create Account</TabsTrigger>
