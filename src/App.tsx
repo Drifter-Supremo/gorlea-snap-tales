@@ -16,6 +16,24 @@ import Header from "./components/Header";
 
 const queryClient = new QueryClient();
 
+// Component to handle auth view based on URL parameters
+const AuthViewHandler = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const view = searchParams.get('view');
+  
+  // Default to login view if no view specified
+  let initialView: 'login' | 'signup' | 'reset' = 'login';
+  
+  if (view === 'signup') {
+    initialView = 'signup';
+  } else if (view === 'reset') {
+    initialView = 'reset';
+  }
+  
+  return <AuthPage initialView={initialView} />;
+};
+
 const AppLayout = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/' || 
@@ -29,10 +47,10 @@ const AppLayout = () => {
       <main className={`flex-1 ${!isAuthPage ? 'pt-16' : ''}`}>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<AuthPage />} />
-          <Route path="/login" element={<AuthPage initialView="login" />} />
-          <Route path="/signup" element={<AuthPage initialView="signup" />} />
-          <Route path="/reset-password" element={<AuthPage initialView="reset" />} />
+          <Route path="/" element={<AuthViewHandler />} />
+          <Route path="/login" element={<AuthViewHandler />} />
+          <Route path="/signup" element={<AuthViewHandler />} />
+          <Route path="/reset-password" element={<AuthViewHandler />} />
 
           {/* Public story view route */}
           <Route path="/story/public/:id" element={<StoryPage isPublicView={true} />} />

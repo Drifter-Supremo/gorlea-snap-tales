@@ -716,33 +716,26 @@ const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col sm:flex-row gap-4">
-            <Button
-              className="bg-gorlea-accent hover:bg-gorlea-accent/90 flex-1"
-              onClick={() => navigate(isPublicView ? "/" : "/app")}
-            >
-              {isPublicView ? "Create Your Own Story" : "Create New Story"}
-            </Button>
-            {!isPublicView && (
-              <Link to="/favorites" className="flex-1">
-                <Button
-                  variant="outline"
-                  className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-                >
-                  View Favorites
-                </Button>
-              </Link>
-            )}
-            {isPublicView && (
-              <Link to="/signup" className="flex-1">
-                <Button
-                  variant="outline"
-                  className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
-                >
-                  Sign Up for Free
-                </Button>
-              </Link>
-            )}
+          <div className="mt-12 flex justify-center">
+            <div className="w-full max-w-md">
+              <Button
+                className="bg-gorlea-accent hover:bg-gorlea-accent/90 w-full"
+                onClick={() => navigate(isPublicView ? "/" : "/app")}
+                size="lg"
+              >
+                {isPublicView ? "Create Your Own Story" : "Create New Story"}
+              </Button>
+              {!isPublicView && (
+                <Link to="/favorites" className="block mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full border-gorlea-tertiary text-gorlea-text hover:bg-gorlea-tertiary"
+                  >
+                    View Favorites
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </main>

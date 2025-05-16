@@ -28,16 +28,20 @@ const Header: React.FC<HeaderProps> = ({ showMenu = true }) => {
       {isPublicView && (
         <div className="flex items-center space-x-4">
           <Button
-            variant="ghost"
-            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            variant="outline"
+            className="text-gorlea-text border-gorlea-tertiary hover:bg-gorlea-tertiary"
             asChild
           >
-            <Link to="/signup">
+            <Link to="/?view=signup">
               Sign Up
             </Link>
           </Button>
-          <Button asChild>
-            <Link to="/login">
+          <Button 
+            variant="default"
+            className="bg-gorlea-accent hover:bg-gorlea-accent/90"
+            asChild
+          >
+            <Link to="/?view=login">
               Log In
             </Link>
           </Button>
