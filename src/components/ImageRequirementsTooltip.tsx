@@ -115,7 +115,7 @@ const ImageRequirementsTooltip: React.FC<ImageRequirementsTooltipProps> = ({
         </PopoverTrigger>
         <PopoverContent
           className="max-w-xs p-4 bg-gorlea-secondary border-gorlea-tertiary text-gorlea-text"
-          sideOffset={5}
+          sideOffset={15}
         >
           <RequirementsContent />
         </PopoverContent>
