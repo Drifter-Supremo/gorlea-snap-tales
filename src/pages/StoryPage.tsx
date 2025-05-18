@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Share, Heart, ChevronLeft, HeartOff, Volume2, Loader2 } from "lucide-react";
+import { Share, Heart, ChevronLeft, HeartOff } from "lucide-react";
 import Header from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStoryById, Story } from "@/data/storiesData";
@@ -13,6 +13,7 @@ import StoryPageSkeleton from "@/components/StoryPageSkeleton";
 import SimpleAudioPlayer from "@/components/SimpleAudioPlayer";
 import { generateSpeech, checkAudioSupport } from "@/services/textToSpeechService";
 import { saveAudioToStorage, getAudioForStory, deleteAudioForStory } from "@/services/audioStorageService";
+import AudioNarrationTooltip from "@/components/AudioNarrationTooltip";
 
 const genreLabels: Record<Genre, string> = {
   "rom-com": "Romantic Comedy",
@@ -216,6 +217,16 @@ const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
   const audioBlobRef = useRef<Blob | null>(null);
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [isBackgroundGenerating, setIsBackgroundGenerating] = useState(false);
+  const [isNewStory, setIsNewStory] = useState(false);
+  
+  // Check if story is newly created (less than 5 minutes ago)
+  useEffect(() => {
+    if (story) {
+      const storyCreationTime = new Date(story.createdAt).getTime();
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      setIsNewStory(storyCreationTime > fiveMinutesAgo);
+    }
+  }, [story]);
 
   // Clean up function to handle URL revocation
   const cleanupAudio = useCallback(() => {
@@ -247,8 +258,10 @@ const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
     // 1. We have a story
     // 2. No audio is currently loaded
     // 3. We're not already generating audio
-    // 4. The story is in favorites (to save API calls for non-favorites)
-    if (story && id && user && isFavorite && !audioUrl && !isGeneratingAudio && !isBackgroundGenerating) {
+    // 4. Either the story is new OR in favorites
+    if (story && id && user && !audioUrl && !isGeneratingAudio && !isBackgroundGenerating && (isNewStory || isFavorite)) {
+      // Always set background generating to true for tooltip display purposes
+      setIsBackgroundGenerating(true);
       const generateAudioInBackground = async () => {
         try {
           setIsBackgroundGenerating(true);
@@ -393,7 +406,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
       // Start the background generation
       generateAudioInBackground();
     }
-  }, [story, id, user, isFavorite, audioUrl, isGeneratingAudio, isBackgroundGenerating]);
+  }, [story, id, user, isFavorite, isNewStory, audioUrl, isGeneratingAudio, isBackgroundGenerating]);
 
   const handleGenerateSpeech = async () => {
     if (!story || !id) return;
@@ -648,22 +661,14 @@ const StoryPage: React.FC<StoryPageProps> = ({ isPublicView = false }) => {
               <h1 className="text-3xl md:text-4xl font-serif font-bold">
                 {story.title}
               </h1>
-              {/* Only show audio button if audio is not ready yet */}
+              {/* Audio narration button with tooltip for new stories */}
               {!isPublicView && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-2 text-gorlea-text hover:text-gorlea-accent hover:bg-gorlea-tertiary"
-                  onClick={handleGenerateSpeech}
-                  disabled={isGeneratingAudio || isBackgroundGenerating}
-                >
-                  {isGeneratingAudio || isBackgroundGenerating ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Volume2 className="h-5 w-5" />
-                  )}
-                  <span className="sr-only">Listen to story narration</span>
-                </Button>
+                <AudioNarrationTooltip
+                  isLoading={isGeneratingAudio || isBackgroundGenerating}
+                  isNewStory={isNewStory}
+                  onButtonClick={handleGenerateSpeech}
+                  className="ml-2"
+                />
               )}
             </div>
 

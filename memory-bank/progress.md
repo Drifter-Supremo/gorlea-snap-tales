@@ -18,6 +18,7 @@
 - OpenAI GPT-4.1 integration is implemented for story generation with proper image analysis capabilities.
 - Story generation with AI and image upload is working correctly with improved image relevance.
 - Simplified story generation prompts to create shorter, easier-to-read stories.
+- Added a simple, temporary audio narration tooltip that displays for a few seconds when audio is loading.
 
 ## What's Left to Build
 
@@ -38,6 +39,7 @@
 - OpenAI GPT-4.1 integration is implemented for story generation with proper image analysis capabilities.
 - Story generation with AI and image upload is working correctly with improved image relevance.
 - Simplified story generation prompts to create shorter, easier-to-read stories.
+- Added a simple, temporary audio narration tooltip that displays for a few seconds when audio is loading.
 - Project is in the implementation phase.
 - Authentication using Firebase Authentication is implemented.
 
